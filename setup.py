@@ -4,7 +4,7 @@ setup(
     name="training_center",
     version="0.1",
     description="Trains algorithms from NHANES dataset.",
-    packages=["fold_maker"],
+    packages=["fold_maker", "prediction"],
     requires=["setuptools", "wheel"],
     install_requires=["numpy", "pandas", "pyarrow"],
     extras_require={"dev": ["tqdm", "jupyter", "ipympl", "black", "matplotlib", "openpyxl"]},
