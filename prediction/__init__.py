@@ -7,7 +7,7 @@ HYPERPARAMETERS = {
         "alpha": hp.loguniform("alpha", np.log(1e-6), np.log(1e0)),
         "l1_ratio": hp.uniform("l1_ratio", 0, 1),
     },
-    "forest": {
+    "light_gbm": {
         "num_leaves": hp.uniform("num_leaves", low=10, high=200),
         "learning_rate": hp.loguniform(
             "learning_rate", low=np.log(1e-4), high=np.log(1e-1)

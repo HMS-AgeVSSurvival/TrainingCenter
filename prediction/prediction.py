@@ -2,17 +2,28 @@ import argparse
 import sys
 
 import pandas as pd
-from prediction.inner_cross_validation import inner_cross_validation
+import numpy as np
 from sklearn.metrics import r2_score, mean_squared_error
 
 from prediction.model import Model
 from prediction.scale import scale
+from prediction.inner_cross_validation import inner_cross_validation
+from prediction.utils import update_results
+
 from prediction import AGE_COLUMN
 
 
 def prediction_cli(argvs=sys.argv[1:]):
-    parser = argparse.ArgumentParser("Pipeline to train and output the predictions for the datasets")
-    parser.add_argument("-mc", "--main_category", help="Name of the main category.", choices=["examination", "laboratory", "questionnaire"], required=True)
+    parser = argparse.ArgumentParser(
+        "Pipeline to train and output the predictions for the datasets"
+    )
+    parser.add_argument(
+        "-mc",
+        "--main_category",
+        help="Name of the main category.",
+        choices=["examination", "laboratory", "questionnaire"],
+        required=True,
+    )
     parser.add_argument("-c", "--category", help="Name of the category.", required=True)
     parser.add_argument(
         "-a",
@@ -40,7 +51,13 @@ def prediction_cli(argvs=sys.argv[1:]):
     args = parser.parse_args(argvs)
     print(args)
 
-    prediction(args.main_category, args.category, args.algorithm, args.random_state, args.n_inner_search)
+    prediction(
+        args.main_category,
+        args.category,
+        args.algorithm,
+        args.random_state,
+        args.n_inner_search,
+    )
 
 
 def prediction(main_category, category, algorithm, random_state, n_inner_search):
@@ -56,7 +73,9 @@ def prediction(main_category, category, algorithm, random_state, n_inner_search)
         train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
         test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
-        hyperparameters = inner_cross_validation(train_set, algorithm, random_state, n_inner_search)
+        hyperparameters = inner_cross_validation(
+            train_set, algorithm, random_state, n_inner_search
+        )
 
         model.set(**hyperparameters)
 
@@ -67,20 +86,45 @@ def prediction(main_category, category, algorithm, random_state, n_inner_search)
         train_prediction = model.predict(scaled_train_set) * age_std + age_mean
         test_prediction = model.predict(scaled_test_set) * age_std + age_mean
 
-        list_train_r2.append(r2_score(train_set.loc[train_prediction.index, AGE_COLUMN], train_prediction))
-        list_train_rmse.append(mean_squared_error(train_set.loc[train_prediction.index, AGE_COLUMN], train_prediction, squared=False))
+        list_train_r2.append(
+            r2_score(
+                train_set.loc[train_prediction.index, AGE_COLUMN], train_prediction
+            )
+        )
+        list_train_rmse.append(
+            mean_squared_error(
+                train_set.loc[train_prediction.index, AGE_COLUMN],
+                train_prediction,
+                squared=False,
+            )
+        )
         list_test_prediction.append(test_prediction)
 
-    train_r2, train_r2_std = pd.Series(list_train_r2).mean() , pd.Series(list_train_r2).std()
-    train_rmse, train_rmse_std = pd.Series(list_train_rmse).mean() , pd.Series(list_train_rmse).std()
-    
-    every_test_prediction = pd.concat(list_test_prediction)
-    test_r2 = r2_score(data.loc[every_test_prediction.index, AGE_COLUMN], every_test_prediction)
-    test_rmse = mean_squared_error(data.loc[every_test_prediction.index, AGE_COLUMN], every_test_prediction, squared=False)
-    
-    # update_google_sheet(main_category, category, algorithm, train_r2, train_r2_std, train_rmse, train_rmse_std, test_r2, test_rmse, n_inner_search, random_state)
+    train_r2, train_r2_std = (
+        pd.Series(list_train_r2).mean(),
+        pd.Series(list_train_r2).std(),
+    )
+    train_rmse, train_rmse_std = (
+        pd.Series(list_train_rmse).mean(),
+        pd.Series(list_train_rmse).std(),
+    )
 
-    print("train_r2:", train_r2, "train_r2_std:", train_r2_std)
-    print("train_rmse:", train_rmse, "train_rmse_std:", train_rmse_std)
-    print("test_r2:", test_r2)
-    print("test_rmse:", test_rmse)
+    every_test_prediction = pd.concat(list_test_prediction)
+    test_r2 = r2_score(
+        data.loc[every_test_prediction.index, AGE_COLUMN], every_test_prediction
+    )
+    test_rmse = mean_squared_error(
+        data.loc[every_test_prediction.index, AGE_COLUMN],
+        every_test_prediction,
+        squared=False,
+    ).astype(np.float64)
+
+    metrics = {
+        "train r²": train_r2,
+        "train r² std": train_r2_std,
+        "train RMSE": train_rmse,
+        "train RMSE std": train_rmse_std,
+        "test r²": test_r2,
+        "test RMSE": test_rmse,
+    }
+    update_results(main_category, category, algorithm, metrics)
