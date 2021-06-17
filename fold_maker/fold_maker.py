@@ -40,7 +40,7 @@ def fold_maker(main_category, category, n_folds):
     
     list_every_folds.append(get_folds(data.index[data["survival_type_alive"].isna()], n_folds))
 
-    for survival_type in ["alive", "cvd", "cancer"]:
+    for survival_type in ["alive", "cvd", "cancer", "other"]:
         list_every_folds.append(get_folds(data.index[data[f"survival_type_{survival_type}"] == 1], n_folds))
     
     data["fold"] = pd.concat(list_every_folds)

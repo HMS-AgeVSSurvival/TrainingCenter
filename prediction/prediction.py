@@ -71,8 +71,8 @@ def prediction(main_category, category, algorithm, random_state, n_inner_search)
         list_train_rmse.append(mean_squared_error(train_set.loc[train_prediction.index, AGE_COLUMN], train_prediction, squared=False))
         list_test_prediction.append(test_prediction)
 
-    train_r2, train_r2_std = pd.Index(list_train_r2).mean() , pd.Index(list_train_r2).std()
-    train_rmse, train_rmse_std = pd.Index(list_train_rmse).mean() , pd.Index(list_train_rmse).std()
+    train_r2, train_r2_std = pd.Series(list_train_r2).mean() , pd.Series(list_train_r2).std()
+    train_rmse, train_rmse_std = pd.Series(list_train_rmse).mean() , pd.Series(list_train_rmse).std()
     
     every_test_prediction = pd.concat(list_test_prediction)
     test_r2 = r2_score(data.loc[every_test_prediction.index, AGE_COLUMN], every_test_prediction)

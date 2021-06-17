@@ -15,6 +15,7 @@ setup(
         "scikit-survival",
         "lightgbm",
         "hyperopt",
+        "gspread"
     ],
     extras_require={
         "dev": ["tqdm", "jupyter", "ipympl", "black", "matplotlib", "openpyxl"]
