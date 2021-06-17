@@ -6,7 +6,7 @@ setup(
     description="Trains algorithms from NHANES dataset.",
     packages=["fold_maker", "prediction"],
     requires=["setuptools", "wheel"],
-    install_requires=["numpy", "pandas", "pyarrow"],
+    install_requires=["numpy", "pandas", "pyarrow", "hyperopt", "sklearn", "lightgbm", "sksurv"],
     extras_require={"dev": ["tqdm", "jupyter", "ipympl", "black", "matplotlib", "openpyxl"]},
     entry_points={
         "console_scripts": [
