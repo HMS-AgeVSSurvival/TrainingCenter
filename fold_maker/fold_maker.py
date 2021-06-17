@@ -3,6 +3,18 @@ import argparse
 import pandas as pd
 
 
+def fold_maker_cli(argvs=sys.argv[1:]):
+    parser = argparse.ArgumentParser("Split the samples into folds according to the survival type")
+    parser.add_argument("-mc", "--main_category", help="Name of the main category.", choices=["examination", "laboratory", "questionnaire"], required=True)
+    parser.add_argument("-c", "--category", help="Name of the category.", required=True)
+    parser.add_argument("-f", "--number_folds", help="Number of folds.", default=10, type=int)
+
+    args = parser.parse_args(argvs)
+    print(args)
+
+    fold_maker(args.main_category, args.category, args.number_folds)
+
+
 def get_folds(indexes, n_folds):
     folds = pd.Series(None, index=indexes, name="fold", dtype=int)
 
@@ -18,18 +30,6 @@ def get_folds(indexes, n_folds):
         folds.iloc[fold_number * n_samples_per_fold + n_big_folds: (fold_number + 1) * n_samples_per_fold + n_big_folds] = fold_number
     
     return folds
-
-
-def fold_maker_cli(argvs=sys.argv[1:]):
-    parser = argparse.ArgumentParser("Split the samples into folds according to the survival type")
-    parser.add_argument("-mc", "--main_category", help="Name of the main category", choices=["examination", "laboratory", "questionnaire"], required=True)
-    parser.add_argument("-c", "--category", help="Name of the category", required=True)
-    parser.add_argument("-f", "--number_folds", help="Number of folds", default=10, type=int)
-
-    args = parser.parse_args(argvs)
-    print(args)
-
-    fold_maker(args.main_category, args.category, args.number_folds)
 
 
 def fold_maker(main_category, category, n_folds):
