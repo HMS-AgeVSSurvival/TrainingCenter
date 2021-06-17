@@ -25,8 +25,8 @@ HYPERPARAMETERS = {
     },
 }
 
-COLUMNS_TO_DROP = [
-    "RIDAGEEX_extended",
+
+COLUMNS_TO_DROP_FOR_SCALE = [
     "mortstat",
     "follow_up_time",
     "survival_type_alive",
@@ -35,3 +35,5 @@ COLUMNS_TO_DROP = [
     "survival_type_other",
     "fold",
 ]
+
+AGE_COLUMN = "RIDAGEEX_extended; Best age in months at date of examination for individuals under 85 years of age at screening."

@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
 from hyperopt import tpe, fmin, rand, Trials
+from sklearn.metrics import r2_score
 
-from prediction import HYPERPARAMETERS
+from prediction.model import Model
+from prediction.scale import scale
+from prediction import HYPERPARAMETERS, AGE_COLUMN
 
 
 def cast_hyperparameters(hyperparameters):
@@ -11,25 +14,33 @@ def cast_hyperparameters(hyperparameters):
             hyperparameters[hyperparameters_to_cast] = int(hyperparameters[hyperparameters_to_cast])
 
 
-def inner_cross_validation(data, algorithm, n_inner_search, random_state):
+def inner_cross_validation(data, algorithm, random_state, n_inner_search):
+    model = Model(algorithm, random_state)
+
     def cross_validation(hyperparameters):
         cast_hyperparameters(hyperparameters)
-        model.set(random_state, **hyperparameters)
+        model.set(**hyperparameters)
 
-        list_val_predictions = []
+        list_val_prediction = []
 
         for fold in data["fold"].drop_duplicates():
             train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
             val_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
-            model.set(hyperparameters, random_state)
-            model.fit(train_set)
+            scaled_train_set, age_mean, age_std = scale(train_set)
+            scaled_val_set, _, _ = scale(val_set)
 
-            list_val_predictions.append(model.predict(val_set))
+            model.fit(scaled_train_set)
+            val_prediction = model.predict(scaled_val_set) * age_std + age_mean
 
-        return -model.score(pd.concat(list_val_predictions))
+            list_val_prediction.append(val_prediction)
 
-    best_params = fmin(
+        every_val_prediction = pd.concat(list_val_prediction)
+        val_r2 = r2_score(data.loc[every_val_prediction.index, AGE_COLUMN], every_val_prediction)
+
+        return -val_r2
+
+    best_hyperparameters = fmin(
         fn=cross_validation,
         space=HYPERPARAMETERS[algorithm],
         trials=Trials(),
@@ -38,5 +49,5 @@ def inner_cross_validation(data, algorithm, n_inner_search, random_state):
         rstate=np.random.RandomState(seed=random_state),
     )
 
-    cast_hyperparameters(best_params)
-    return best_params
+    cast_hyperparameters(best_hyperparameters)
+    return best_hyperparameters
