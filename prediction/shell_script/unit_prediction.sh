@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --partition short
-#SBATCH --time=0-2:00
+#SBATCH --time=0-12:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu 8G
