@@ -12,4 +12,4 @@ module load python/3.7.4
 source env_o2/bin/activate
 
 
-prediction $@
+prediction $@ 

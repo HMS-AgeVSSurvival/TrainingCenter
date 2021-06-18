@@ -2,9 +2,9 @@ from hyperopt import hp
 import numpy as np
 
 
-HYPERPARAMETERS = {
+HYPERPARAMETERS_AGE = {
     "elastic_net": {
-        "alpha": hp.loguniform("alpha", np.log(1e-6), np.log(1e0)),
+        "alpha": hp.loguniform("alpha", np.log(1e-6), np.log(2e1)),
         "l1_ratio": hp.uniform("l1_ratio", 0, 1),
     },
     "light_gbm": {
@@ -24,6 +24,19 @@ HYPERPARAMETERS = {
         ),  # L2 regularization
     },
 }
+HYPERPARAMETERS_SURVIVAL = {
+        "elastic_net": {
+            "alpha": hp.loguniform("alpha", np.log(1e-1), np.log(1e0)),
+            "l1_ratio": hp.uniform("l1_ratio", low=0.00001, high=0.1),
+        },
+        "forest": {
+            "max_leaf_nodes": hp.uniform("max_leaf_nodes", low=20, high=200),
+            "learning_rate": hp.loguniform("learning_rate", low=np.log(1e-4), high=np.log(1e-1)),
+            "n_estimators": hp.uniform("n_estimators", low=80, high=250),
+            "min_samples_leaf": hp.uniform("min_samples_leaf", low=5, high=30),
+            "subsample": hp.uniform("subsample", low=0.2, high=1),
+        },
+}
 
 
 COLUMNS_TO_DROP_FOR_SCALE = [
@@ -35,5 +48,8 @@ COLUMNS_TO_DROP_FOR_SCALE = [
     "survival_type_other",
     "fold",
 ]
+COLUMNS_TO_ADD_AFTER_SCALE = ["mortstat", "follow_up_time"]
 
 AGE_COLUMN = "RIDAGEEX_extended; Best age in months at date of examination for individuals under 85 years of age at screening."
+DEATH_COLUMN = "mortstat"
+FOLLOW_UP_TIME_COLUMN = "follow_up_time"
