@@ -35,7 +35,7 @@ class ModelSurvival:
         self.random_state = random_state
 
         if self.algorithm == "elastic_net":
-            self.net = CoxnetSurvivalAnalysis(n_alphas=1, max_iter=1000)
+            self.net = CoxnetSurvivalAnalysis(n_alphas=1)  #, max_iter=2000)
         elif self.algorithm == "light_gbm":
             self.net = GradientBoostingSurvivalAnalysis(random_state=self.random_state)
         
