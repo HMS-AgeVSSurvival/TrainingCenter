@@ -7,7 +7,7 @@ import numpy as np
 
 def prediction_cli(argvs=sys.argv[1:]):
     parser = argparse.ArgumentParser(
-        "Pipeline to train and output the predictions for the datasets"
+        "Pipeline to train and output the predictions from the datasets"
     )
     parser.add_argument(
         "-mc",
@@ -172,41 +172,50 @@ def prediction_survival(main_category, category, algorithm, target, random_state
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
 
+    if (not data.empty) and (data[DEATH_COLUMN].sum() > len(data["fold"].drop_duplicates())):
+        for fold in data["fold"].drop_duplicates():
+            train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
+            test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
-    for fold in data["fold"].drop_duplicates():
-        train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
-        test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
+            hyperparameters = inner_cross_validation_survival(
+                train_set, algorithm, random_state, n_inner_search
+            )
 
-        hyperparameters = inner_cross_validation_survival(
-            train_set, algorithm, random_state, n_inner_search
+            model.set(**hyperparameters)
+
+            scaled_train_set = scale_survival(train_set)
+            scaled_test_set = scale_survival(test_set)
+
+            model.fit(scaled_train_set)
+
+            train_prediction = model.predict(scaled_train_set)
+            test_prediction = model.predict(scaled_test_set)
+
+            list_train_c_index.append(
+                concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
+            )
+            list_test_prediction.append(test_prediction)
+        
+        train_c_index, train_c_index_std = (
+            pd.Series(list_train_c_index).mean(),
+            pd.Series(list_train_c_index).std(),
         )
+        every_test_prediction = pd.concat(list_test_prediction)
+        test_c_index = concordance_index_censored(data.loc[every_test_prediction.index, DEATH_COLUMN].astype(bool), data.loc[every_test_prediction.index, FOLLOW_UP_TIME_COLUMN], every_test_prediction)[0]
 
-        model.set(**hyperparameters)
+        metrics = {
+            "train C-index": train_c_index,
+            "train C-index std": train_c_index_std,
+            "test C-index": test_c_index,
+        }
 
-        scaled_train_set = scale_survival(train_set)
-        scaled_test_set = scale_survival(test_set)
+        update_results_survival(main_category, category, algorithm, target, metrics)
 
-        model.fit(scaled_train_set)
+    else:
+        metrics = {
+            "train C-index": -1,
+            "train C-index std": -1,
+            "test C-index": -1,
+        }
 
-        train_prediction = model.predict(scaled_train_set)
-        test_prediction = model.predict(scaled_test_set)
-
-        list_train_c_index.append(
-            concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
-        )
-        list_test_prediction.append(test_prediction)
-    
-    train_c_index, train_c_index_std = (
-        pd.Series(list_train_c_index).mean(),
-        pd.Series(list_train_c_index).std(),
-    )
-    every_test_prediction = pd.concat(list_test_prediction)
-    test_c_index = concordance_index_censored(data.loc[every_test_prediction.index, DEATH_COLUMN].astype(bool), data.loc[every_test_prediction.index, FOLLOW_UP_TIME_COLUMN], every_test_prediction)[0]
-
-    metrics = {
-        "train C-index": train_c_index,
-        "train C-index std": train_c_index_std,
-        "test C-index": test_c_index,
-    }
-
-    update_results_survival(main_category, category, algorithm, target, metrics)
+        update_results_survival(main_category, category, algorithm, target, metrics)

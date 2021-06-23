@@ -15,7 +15,7 @@ HYPERPARAMETERS_AGE = {
         "n_estimators": hp.uniform("n_estimators", low=80, high=400),
         "min_child_samples": hp.uniform("min_child_samples", low=1, high=30),
         "subsample": hp.uniform("subsample", low=0.1, high=1),
-        "subsample_freq": hp.uniform("subsample_freq", low=0.1, high=1),
+        "subsample_freq": hp.uniform("subsample_freq", low=1, high=80),
         "colsample_bytree": hp.uniform("colsample_bytree", low=0.1, high=1),
         "reg_alpha": hp.loguniform(
             "reg_alpha", np.log(1e-6), np.log(1e0)

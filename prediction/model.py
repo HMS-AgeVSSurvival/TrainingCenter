@@ -37,7 +37,7 @@ class ModelSurvival:
         if self.algorithm == "elastic_net":
             self.net = CoxnetSurvivalAnalysis(n_alphas=1)  #, max_iter=2000)
         elif self.algorithm == "light_gbm":
-            self.net = GradientBoostingSurvivalAnalysis(random_state=self.random_state)
+            self.net = GradientBoostingSurvivalAnalysis(random_state=self.random_state, max_features="sqrt")
         
     def set(self, **hyperparameters):
         if self.algorithm == "elastic_net":
