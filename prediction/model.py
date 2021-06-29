@@ -12,7 +12,7 @@ class ModelAge:
         self.random_state = random_state
 
         if self.algorithm == "elastic_net":  # Randomness comes from feature selection
-            self.net = ElasticNet(selection="random", random_state=self.random_state, max_iter=2000)
+            self.net = ElasticNet(selection="random", random_state=self.random_state, max_iter=1000, l1_ratio=0)
         elif self.algorithm == "light_gbm":
             self.net = LGBMRegressor(importance_type="gain", random_state=self.random_state)
 

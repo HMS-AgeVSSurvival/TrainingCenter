@@ -13,7 +13,7 @@ def prediction_cli(argvs=sys.argv[1:]):
         "-mc",
         "--main_category",
         help="Name of the main category.",
-        choices=["examination", "laboratory", "questionnaire"],
+        choices=["examination", "laboratory", "questionnaire", "heart"],
         required=True,
     )
     parser.add_argument("-c", "--category", help="Name of the category.", required=True)
@@ -83,6 +83,8 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
     list_train_r2 = []
     list_train_rmse = []
     list_test_prediction = []
+    list_test_r2 = []
+    list_test_rmse = []
 
     model = ModelAge(algorithm, random_state)
 
@@ -90,9 +92,9 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
         test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
-        hyperparameters = inner_cross_validation_age(
-            train_set, algorithm, random_state, n_inner_search
-        )
+        hyperparameters = {'alpha': 9, 'l1_ratio': 0}  # inner_cross_validation_age(
+        #     train_set, algorithm, random_state, n_inner_search
+        # )
 
         model.set(**hyperparameters)
 
@@ -117,6 +119,20 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
             )
         )
         list_test_prediction.append(test_prediction)
+
+        list_test_r2.append(
+            r2_score(
+                test_set.loc[test_prediction.index, AGE_COLUMN], test_prediction
+            )
+        )
+        list_test_rmse.append(
+            mean_squared_error(
+                test_set.loc[test_prediction.index, AGE_COLUMN],
+                test_prediction,
+                squared=False,
+            )
+        )
+
     
     train_r2, train_r2_std = (
         pd.Series(list_train_r2).mean(),
@@ -137,16 +153,23 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         squared=False,
     ).astype(np.float64)
 
+
+    test_r2_std = pd.Series(list_test_r2).std()
+    test_rmse_std = pd.Series(list_test_rmse).std()
+
     metrics = {
         "train r²": train_r2,
         "train r² std": train_r2_std,
         "train RMSE": train_rmse,
         "train RMSE std": train_rmse_std,
         "test r²": test_r2,
+        "test r² std": test_r2_std,
         "test RMSE": test_rmse,
+        "test RMSE std": test_rmse_std
     }
 
-    update_results_age(main_category, category, algorithm, metrics)
+    print(metrics)
+    # update_results_age(main_category, category, algorithm, metrics)
 
 
 def prediction_survival(main_category, category, algorithm, target, random_state, n_inner_search):

@@ -4,8 +4,7 @@ import numpy as np
 
 HYPERPARAMETERS_AGE = {
     "elastic_net": {
-        "alpha": hp.loguniform("alpha", np.log(1e-6), np.log(2e1)),
-        "l1_ratio": hp.uniform("l1_ratio", 0, 1),
+        "alpha": hp.uniform("alpha", 5, 20),
     },
     "light_gbm": {
         "num_leaves": hp.uniform("num_leaves", low=10, high=1000),
