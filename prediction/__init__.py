@@ -54,3 +54,5 @@ COLUMNS_TO_ADD_AFTER_SCALE = ["mortstat", "follow_up_time"]
 AGE_COLUMN = "RIDAGEEX_extended; Best age in months at date of examination for individuals under 85 years of age at screening."
 DEATH_COLUMN = "mortstat"
 FOLLOW_UP_TIME_COLUMN = "follow_up_time"
+
+COLOR_ALGORITHM = {"elastic_net":{"red": 0.5, "green": 0.5, "blue": 1.0}, "light_gbm":{"red": 0.5, "green": 1.0, "blue": 0.5}}

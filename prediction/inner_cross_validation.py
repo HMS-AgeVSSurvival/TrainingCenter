@@ -25,7 +25,7 @@ def inner_cross_validation_age(data, algorithm, random_state, n_inner_search):
 
         list_val_prediction = []
 
-        for fold in data["fold"].drop_duplicates():
+        for fold in data["fold"].drop_duplicates().sample(n=3):
             train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
             val_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
@@ -71,7 +71,7 @@ def inner_cross_validation_survival(data, algorithm, random_state, n_inner_searc
         try:
             list_val_prediction = []
 
-            for fold in data["fold"].drop_duplicates():
+            for fold in data["fold"].drop_duplicates().sample(n=3):
                 train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
                 val_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 

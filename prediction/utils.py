@@ -1,53 +1,88 @@
 import os
-import numpy as np
 import time
+import numpy as np
 import gspread
+import json
+
+from prediction import COLOR_ALGORITHM
 
 
-GC = gspread.service_account(filename='credentials.json')
-GOOGLE_SHEET = GC.open_by_key(os.environ.get('GOOGLE_RESULTS_SHEET_ID'))
-METRICS_COL_ORDER_AGE = {"elastic_net": 0, "light_gbm": 1}
-METRICS_COL_ORDER_SURVIVAL = {"all": {"elastic_net": 0, "light_gbm": 1}, "cvd": {"elastic_net": 2, "light_gbm": 3}, "cancer": {"elastic_net": 4, "light_gbm": 5}}
+def get_worksheet(main_category):
+    service_account_id = np.random.randint(1, 6)
+    gc = gspread.service_account(filename=f"credentials/credentials_{service_account_id}.json")
+    google_sheet = gc.open_by_key(os.environ.get("GOOGLE_RESULTS_SHEET_ID"))
+    
+    return google_sheet.worksheet(main_category)
 
 
-def update_results_age(main_category, category, algorithm, metrics):
-    results_updated = False
-    while not results_updated:
+def handle_gspread_error(error):
+    error = json.loads(error.response._content)
+    if error["error"]["code"] == 429:  # Means too many Google Sheet API's calls
+        sleep_time = 101
+        print(f"Sleep {sleep_time}")
+        time.sleep(sleep_time)
+    else:
+        raise error
+
+
+def update_cell(main_category, row, col, value):
+    cell_updated = False
+    while not cell_updated:
         try:
-            worksheet = GOOGLE_SHEET.worksheet(main_category)
-            category_row = worksheet.find(category).row
-            test_r2_column = worksheet.findall("test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
-
-            previous_test_r2 = worksheet.cell(category_row, test_r2_column).value
-            if previous_test_r2 is None or float(previous_test_r2) < metrics["test r²"]:
-                for metric_name in list(metrics.keys()):
-                    metric_column = worksheet.findall(metric_name)[METRICS_COL_ORDER_AGE[algorithm]].col
-                    worksheet.update_cell(category_row, metric_column, np.round(metrics[metric_name], 3))
-            results_updated = True
-        except gspread.exceptions.APIError:  # Means too many Google Sheet API's calls
-            sleep_time = np.random.randint(101, 1000)
-            print(f"Sleep {sleep_time}")
-            time.sleep(sleep_time)
+            worksheet = get_worksheet(main_category)
+            worksheet.update_cell(row, col, value)
+            cell_updated = True
+        except gspread.exceptions.APIError as error_gspread:
+            handle_gspread_error(error_gspread)
 
 
-def update_results_survival(main_category, category, algorithm, target, metrics):
-    results_updated = False
-    while not results_updated:
+def find_cell(main_category, name):
+    got_cell = False
+    while not got_cell:
         try:
-            worksheet = GOOGLE_SHEET.worksheet(main_category)
-            category_row = worksheet.find(category).row
-            test_c_index_column = worksheet.findall("test C-index")[METRICS_COL_ORDER_SURVIVAL[target][algorithm]].col
+            worksheet = get_worksheet(main_category)
+            cell = worksheet.find(name)
+            got_cell = True
+        except gspread.exceptions.APIError as error_gspread:
+            handle_gspread_error(error_gspread)
 
-            previous_test_c_index = worksheet.cell(category_row, test_c_index_column).value
-            if previous_test_c_index is None or float(previous_test_c_index) < metrics["test C-index"]:
-                for metric_name in list(metrics.keys()):
-                    metric_column = worksheet.findall(metric_name)[METRICS_COL_ORDER_SURVIVAL[target][algorithm]].col
-                    if metrics[metric_name] != -1:  # -1 means that there is no data available
-                        worksheet.update_cell(category_row, metric_column, np.round(metrics[metric_name], 3))
-                    else:
-                        worksheet.update_cell(category_row, metric_column, metrics[metric_name])
-            results_updated = True
-        except gspread.exceptions.APIError:  # Means too many Google Sheet API's calls
-            sleep_time = np.random.randint(101, 1000)
-            print(f"Sleep {sleep_time}")
-            time.sleep(sleep_time)
+    return cell
+
+
+def findall_cells(main_category, name):
+    got_cell = False
+    while not got_cell:
+        try:
+            worksheet = get_worksheet(main_category)
+            cells = worksheet.findall(name)
+            got_cell = True
+        except gspread.exceptions.APIError as error_gspread:
+            handle_gspread_error(error_gspread)
+
+    return cells
+
+
+def get_cell(main_category, row, col):
+    got_cell = False
+    while not got_cell:
+        try:
+            worksheet = get_worksheet(main_category)
+            cell = worksheet.cell(row, col)
+            got_cell = True
+        except gspread.exceptions.APIError as error_gspread:
+            handle_gspread_error(error_gspread)
+
+    return cell
+
+
+def format_cell(main_category, row, col, algorithm):
+    letter_col = chr(ord('A') - 1 + col)
+
+    cell_formated = False
+    while not cell_formated:
+        try:
+            worksheet = get_worksheet(main_category)
+            worksheet.format(f"{letter_col}{row}", {"backgroundColor": COLOR_ALGORITHM[algorithm]})
+            cell_formated = True
+        except gspread.exceptions.APIError as error_gspread:
+            handle_gspread_error(error_gspread)

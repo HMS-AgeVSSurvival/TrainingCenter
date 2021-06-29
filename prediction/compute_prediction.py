@@ -75,10 +75,14 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
     from prediction.model import ModelAge
     from prediction.scale import scale_age
     from prediction.inner_cross_validation import inner_cross_validation_age
-    from prediction.utils import update_results_age
+    from prediction.update_results import update_results_age
     from prediction import AGE_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
+    raw_data = data.copy()
+
+    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
+    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     list_train_r2 = []
     list_train_rmse = []
@@ -146,7 +150,11 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         "test RMSE": test_rmse,
     }
 
-    update_results_age(main_category, category, algorithm, metrics)
+    results_updated = update_results_age(main_category, category, algorithm, metrics)
+
+    if results_updated:
+        raw_data[f"prediction_age_{algorithm}_{random_state}"] = every_test_prediction
+        raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
 def prediction_survival(main_category, category, algorithm, target, random_state, n_inner_search):
@@ -155,10 +163,14 @@ def prediction_survival(main_category, category, algorithm, target, random_state
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
-    from prediction.utils import update_results_survival
+    from prediction.update_results import update_results_survival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
+    raw_data = data.copy()
+
+    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
+    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     list_train_c_index = []
     list_test_prediction = []
@@ -208,9 +220,6 @@ def prediction_survival(main_category, category, algorithm, target, random_state
             "train C-index std": train_c_index_std,
             "test C-index": test_c_index,
         }
-
-        update_results_survival(main_category, category, algorithm, target, metrics)
-
     else:
         metrics = {
             "train C-index": -1,
@@ -218,4 +227,8 @@ def prediction_survival(main_category, category, algorithm, target, random_state
             "test C-index": -1,
         }
 
-        update_results_survival(main_category, category, algorithm, target, metrics)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics)
+    
+    if metrics["test C-index"] != -1 and results_updated:
+        raw_data[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
+        raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")

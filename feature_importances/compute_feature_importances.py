@@ -75,10 +75,14 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
     from prediction.model import ModelAge
     from prediction.scale import scale_age
     from prediction.inner_cross_validation import inner_cross_validation_age
-    from feature_importances.utils import update_results_age
+    from feature_importances.update_results import update_results_age
     from prediction import AGE_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
+    raw_data = data.copy()
+
+    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
+    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     model = ModelAge(algorithm, random_state)
 
@@ -107,7 +111,21 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
     metrics = {"train r²": train_r2, "train RMSE": train_rmse}
 
-    update_results_age(main_category, category, algorithm, metrics)
+    results_updated = update_results_age(main_category, category, algorithm, metrics)
+
+    if results_updated:
+        index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}"
+        feature_importances = model.get_feature_importances(scaled_train_set.columns)
+        feature_importances.index = [index_feature_importances]
+
+        if index_feature_importances in raw_data.index:
+            raw_data.loc[index_feature_importances] = feature_importances.loc[index_feature_importances]
+        else:
+            raw_data = raw_data.append(feature_importances)
+            raw_data.index.name = "SEQN"
+            raw_data.index = raw_data.index.astype(str, copy=False)
+        
+        raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
 def feature_importances_survival(main_category, category, algorithm, target, random_state, n_inner_search):
@@ -116,10 +134,14 @@ def feature_importances_survival(main_category, category, algorithm, target, ran
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
-    from feature_importances.utils import update_results_survival
+    from feature_importances.update_results import update_results_survival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
+    raw_data = data.copy()
+
+    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
+    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     model = ModelSurvival(algorithm, random_state)
 
@@ -148,10 +170,21 @@ def feature_importances_survival(main_category, category, algorithm, target, ran
         train_c_index = concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
              
         metrics = {"train C-index": train_c_index}
-
-        update_results_survival(main_category, category, algorithm, target, metrics)
-
     else:
         metrics = {"train C-index": -1}
 
-        update_results_survival(main_category, category, algorithm, target, metrics)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics)
+    
+    if metrics["train C-index"] != -1 and results_updated:
+        index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}"
+        feature_importances = model.get_feature_importances(scaled_train_set.columns)
+        feature_importances.index = [index_feature_importances]
+
+        if index_feature_importances in raw_data.index:
+            raw_data.loc[index_feature_importances] = feature_importances.loc[index_feature_importances]
+        else:
+            raw_data = raw_data.append(feature_importances)
+            raw_data.index.name = "SEQN"
+            raw_data.index = raw_data.index.astype(str, copy=False)
+        
+        raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
