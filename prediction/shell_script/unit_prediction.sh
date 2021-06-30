@@ -3,7 +3,7 @@
 #SBATCH --time=0-12:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu 8G
+#SBATCH --mem-per-cpu 6G
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=theo.vincent@eleves.enpc.fr
 

@@ -137,6 +137,14 @@ def feature_importances_survival(main_category, category, algorithm, target, ran
     from feature_importances.update_results import update_results_survival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
 
+
+    def any_fold_all_cencored(data):
+        for idx_fold in data["fold"].drop_duplicates():
+            if (data.loc[data["fold"] == idx_fold, DEATH_COLUMN] == 1.0).sum() == 0:
+                return True
+        return False
+
+
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
     raw_data = data.copy()
 
@@ -152,7 +160,7 @@ def feature_importances_survival(main_category, category, algorithm, target, ran
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
 
-    if (not data.empty) and (data[DEATH_COLUMN].sum() > len(data["fold"].drop_duplicates())):
+    if (not data.empty) and (not any_fold_all_cencored(data)):
         train_set = data.sample(frac=1, random_state=0)
 
         hyperparameters = inner_cross_validation_survival(

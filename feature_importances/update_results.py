@@ -16,6 +16,7 @@ def update_results_age(main_category, category, algorithm, metrics):
 
     previous_train_r2 = get_cell(main_category, category_row, train_r2_column).value
     if previous_train_r2 is None or float(previous_train_r2) < metrics["train r²"]:
+        print(metrics)
         results_updated = True
         for metric_name in list(metrics.keys()):
             metric_column = findall_cells(main_category, metric_name)[METRICS_COL_ORDER_AGE[algorithm]].col
@@ -40,6 +41,7 @@ def update_results_survival(main_category, category, algorithm, target, metrics)
 
     previous_train_c_index = get_cell(main_category, category_row, train_c_index_column).value
     if previous_train_c_index is None or float(previous_train_c_index) < metrics["train C-index"]:
+        print(metrics)
         results_updated = True
         for metric_name in list(metrics.keys()):
             metric_column = findall_cells(main_category, metric_name)[METRICS_COL_ORDER_SURVIVAL[target][algorithm]].col

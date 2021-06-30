@@ -157,6 +157,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
+
 def prediction_survival(main_category, category, algorithm, target, random_state, n_inner_search):
     from sksurv.metrics import concordance_index_censored
 
@@ -165,6 +166,14 @@ def prediction_survival(main_category, category, algorithm, target, random_state
     from prediction.inner_cross_validation import inner_cross_validation_survival
     from prediction.update_results import update_results_survival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
+
+
+    def any_fold_all_cencored(data):
+        for idx_fold in data["fold"].drop_duplicates():
+            if (data.loc[data["fold"] == idx_fold, DEATH_COLUMN] == 1.0).sum() == 0:
+                return True
+        return False
+
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
     raw_data = data.copy()
@@ -184,7 +193,7 @@ def prediction_survival(main_category, category, algorithm, target, random_state
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
 
-    if (not data.empty) and (data[DEATH_COLUMN].sum() > len(data["fold"].drop_duplicates())):
+    if (not data.empty) and (not any_fold_all_cencored(data)):
         for fold in data["fold"].drop_duplicates():
             train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
             test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
@@ -226,7 +235,7 @@ def prediction_survival(main_category, category, algorithm, target, random_state
             "train C-index std": -1,
             "test C-index": -1,
         }
-
+    
     results_updated = update_results_survival(main_category, category, algorithm, target, metrics)
     
     if metrics["test C-index"] != -1 and results_updated:

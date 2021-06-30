@@ -12,7 +12,7 @@ do
             mkdir out/feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/
             
             rm out/feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out
-            sbatch -J feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -a elastic_net -t $TARGET -rs 2 -nis 1000
+            sbatch -J feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -a elastic_net -t $TARGET -rs 2 -nis 100
             
             rm out/feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out
             sbatch -J feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/feature_importances/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -a light_gbm -t $TARGET -rs 2 -nis 10
