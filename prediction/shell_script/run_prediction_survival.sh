@@ -12,10 +12,10 @@ do
             mkdir out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/
             
             rm out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out
-            sbatch -J prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -a elastic_net -t $TARGET -rs 2 -nis 100
+            sbatch -J prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -tt full_training -t $TARGET -a elastic_net -rs 2 -nis 100
             
             rm out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out
-            sbatch -J prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -a light_gbm -t $TARGET -rs 2 -nis 10
+            sbatch -J prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -tt full_training -t $TARGET -a light_gbm -rs 2 -nis 10
         done
     done
 done

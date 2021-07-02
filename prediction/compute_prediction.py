@@ -18,17 +18,23 @@ def prediction_cli(argvs=sys.argv[1:]):
     )
     parser.add_argument("-c", "--category", help="Name of the category.", required=True)
     parser.add_argument(
-        "-a",
-        "--algorithm",
-        help="The name of the algorithm.",
-        choices=["elastic_net", "light_gbm"],
-        required=True,
+        "-tt",
+        "--training_type",
+        help="The training type.",
+        choices=["full_training", "basic_training"],
     )
     parser.add_argument(
         "-t",
         "--target",
         help="The target of the algorithm.",
         choices=["age", "all", "cvd", "cancer"],
+        required=True,
+    )
+    parser.add_argument(
+        "-a",
+        "--algorithm",
+        help="The name of the algorithm.",
+        choices=["elastic_net", "light_gbm"],
         required=True,
     )
     parser.add_argument(
@@ -62,8 +68,9 @@ def prediction_cli(argvs=sys.argv[1:]):
         prediction_survival(
             args.main_category,
             args.category,
-            args.algorithm,
+            args.training_type,
             args.target,
+            args.algorithm,
             args.random_state,
             args.n_inner_search,
         )
@@ -158,14 +165,14 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
 
 
 
-def prediction_survival(main_category, category, algorithm, target, random_state, n_inner_search):
+def prediction_survival(main_category, category, training_type, target, algorithm, random_state, n_inner_search):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
     from prediction.update_results import update_results_survival
-    from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
+    from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, BASIC_TRAINING_COLUMNS
 
 
     def any_fold_all_cencored(data):
@@ -192,6 +199,9 @@ def prediction_survival(main_category, category, algorithm, target, random_state
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cvd"] == 1)]
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
+
+    if training_type == "basic_training":
+        data = data[BASIC_TRAINING_COLUMNS]
 
     if (not data.empty) and (not any_fold_all_cencored(data)):
         for fold in data["fold"].drop_duplicates():
@@ -236,8 +246,8 @@ def prediction_survival(main_category, category, algorithm, target, random_state
             "test C-index": -1,
         }
     
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type)
     
     if metrics["test C-index"] != -1 and results_updated:
-        raw_data[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
+        raw_data[f"prediction_{training_type}_{target}_{algorithm}_{random_state}"] = every_test_prediction
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")

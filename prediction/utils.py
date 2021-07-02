@@ -30,7 +30,7 @@ def update_cell(main_category, row, col, value):
     while not cell_updated:
         try:
             worksheet = get_worksheet(main_category)
-            worksheet.update_cell(row, col, np.float32(value))
+            worksheet.update_cell(row, col, float(value))
             cell_updated = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)

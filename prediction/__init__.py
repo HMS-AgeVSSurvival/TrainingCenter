@@ -54,5 +54,6 @@ COLUMNS_TO_ADD_AFTER_SCALE = ["mortstat", "follow_up_time"]
 AGE_COLUMN = "RIDAGEEX_extended; Best age in months at date of examination for individuals under 85 years of age at screening."
 DEATH_COLUMN = "mortstat"
 FOLLOW_UP_TIME_COLUMN = "follow_up_time"
+BASIC_TRAINING_COLUMNS = ['RIAGENDR; Gender of the sample person', 'RIDAGEEX_extended; Best age in months at date of examination for individuals under 85 years of age at screening.', 'RIDRETH1_Non-Hispanic Black; Recode of reported race and ethnicity information.', 'RIDRETH1_Non-Hispanic White; Recode of reported race and ethnicity information.', 'RIDRETH1_Other Hispanic; Recode of reported race and ethnicity information.', 'RIDRETH1_Other Race - Including Multi-Racial; Recode of reported race and ethnicity information.', 'mortstat', 'follow_up_time', 'survival_type_alive', 'survival_type_cancer', 'survival_type_cvd', 'survival_type_other', 'fold']
 
 COLOR_ALGORITHM = {"elastic_net":{"red": 0.5, "green": 0.5, "blue": 1.0}, "light_gbm":{"red": 0.5, "green": 1.0, "blue": 0.5}}

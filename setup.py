@@ -4,7 +4,7 @@ setup(
     name="training_center",
     version="0.1",
     description="Trains algorithms from NHANES dataset.",
-    packages=["fold_maker", "prediction"],
+    packages=["fold_maker", "prediction", "feature_importances", "utils", "test"],
     requires=["setuptools", "wheel"],
     install_requires=[
         "numpy",
@@ -15,10 +15,12 @@ setup(
         "scikit-survival",
         "lightgbm",
         "hyperopt",
-        "gspread"
+        "gspread",
+        "matplotlib", 
+        "openpyxl"
     ],
     extras_require={
-        "dev": ["tqdm", "jupyter", "ipympl", "black", "matplotlib", "openpyxl"]
+        "dev": ["tqdm", "jupyter", "ipympl", "black"]
     },
     entry_points={
         "console_scripts": [
