@@ -18,7 +18,7 @@ def get_worksheet(main_category):
 def handle_gspread_error(error):
     error = json.loads(error.response._content)
 
-    if error["error"]["code"] == 429:  # Means too many Google Sheet API's calls
+    if error["error"]["code"] == 429 or error["error"]["code"] == 101:  # Means too many Google Sheet API's calls
         sleep_time = 61
         print(f"Sleep {sleep_time}")
         time.sleep(sleep_time)
