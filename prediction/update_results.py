@@ -1,6 +1,6 @@
 import numpy as np
 
-from prediction.utils import find_cell, findall_cells, get_cell, update_cell, format_cell
+from utils.google_sheets_sdk import find_cell, findall_cells, get_cell, update_cell, format_cell
 
 
 METRICS_COL_ORDER_AGE = {"elastic_net": 0, "light_gbm": 1}
@@ -48,17 +48,15 @@ def update_results_survival(main_category, category, algorithm, target, metrics,
             metric_column = findall_cells(main_category, metric_name)[METRICS_COL_ORDER_SURVIVAL[training_type][target][algorithm]].col
             update_cell(main_category, category_row, metric_column, np.round(metrics[metric_name], 3))
     
-    summary_main_category = "summary " + main_category
-    summary_category_row = find_cell(summary_main_category, category).row
     if training_type == "full_training":
-        score_name = "best test C-index"
-    elif training_type == "basic_training":
-        score_name = "best basic test C-index"
-    best_test_c_index_column = findall_cells(summary_main_category, score_name)[BEST_METRICS_COL_ORDER_SURVIVAL[target]].col
+        summary_main_category = "summary " + main_category
+        summary_category_row = find_cell(summary_main_category, category).row
+        
+        best_test_c_index_column = findall_cells(summary_main_category, "best test C-index")[BEST_METRICS_COL_ORDER_SURVIVAL[target]].col
 
-    previous_best_test_c_index = get_cell(summary_main_category, summary_category_row, best_test_c_index_column).value
-    if previous_best_test_c_index is None or float(previous_best_test_c_index) < metrics["test C-index"]:
-        update_cell(summary_main_category, summary_category_row, best_test_c_index_column, np.round(metrics["test C-index"], 3))
-        format_cell(summary_main_category, summary_category_row, best_test_c_index_column, algorithm)
+        previous_best_test_c_index = get_cell(summary_main_category, summary_category_row, best_test_c_index_column).value
+        if previous_best_test_c_index is None or float(previous_best_test_c_index) < metrics["test C-index"]:
+            update_cell(summary_main_category, summary_category_row, best_test_c_index_column, np.round(metrics["test C-index"], 3))
+            format_cell(summary_main_category, summary_category_row, best_test_c_index_column, algorithm)
     
     return results_updated
