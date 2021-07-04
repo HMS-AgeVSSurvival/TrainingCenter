@@ -18,7 +18,7 @@ def get_worksheet(main_category):
 def handle_gspread_error(error):
     error = json.loads(error.response._content)
 
-    if error["error"]["code"] == 429 or error["error"]["code"] == 101:  # Means too many Google Sheet API's calls
+    if error["error"]["code"] in [429, 101, 500]:  # Means too many Google Sheet API's calls
         sleep_time = 61
         print(f"Sleep {sleep_time}")
         time.sleep(sleep_time)
@@ -31,7 +31,6 @@ def update_cell(main_category, row, col, value):
     while not cell_updated:
         try:
             worksheet = get_worksheet(main_category)
-            print(np.float32(value))
             worksheet.update_cell(row, col, str(value))
             cell_updated = True
         except gspread.exceptions.APIError as error_gspread:
