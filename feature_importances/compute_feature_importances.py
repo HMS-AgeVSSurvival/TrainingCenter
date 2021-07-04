@@ -18,12 +18,6 @@ def feature_importances_cli(argvs=sys.argv[1:]):
     )
     parser.add_argument("-c", "--category", help="Name of the category.", required=True)
     parser.add_argument(
-        "-tt",
-        "--training_type",
-        help="The training type.",
-        choices=["full_training", "basic_training"],
-    )
-    parser.add_argument(
         "-t",
         "--target",
         help="The target of the algorithm.",
@@ -52,7 +46,9 @@ def feature_importances_cli(argvs=sys.argv[1:]):
         type=int,
         help="The number of evaluation in the hyperparameters space",
     )
-
+    parser.add_argument(
+        "-sa", "--save_anyways", help="Save the feature importances anyways", action="store_true", default=False
+    )
     args = parser.parse_args(argvs)
     print(args)
 
@@ -63,20 +59,21 @@ def feature_importances_cli(argvs=sys.argv[1:]):
             args.algorithm,
             args.random_state,
             args.n_inner_search,
+            args.save_anyways
         )
     else:
         feature_importances_survival(
             args.main_category,
             args.category,
-            args.training_type,
             args.target,
             args.algorithm,
             args.random_state,
             args.n_inner_search,
+            args.save_anyways
         )
 
 
-def feature_importances_age(main_category, category, algorithm, random_state, n_inner_search):
+def feature_importances_age(main_category, category, algorithm, random_state, n_inner_search, save_anyways):
     from sklearn.metrics import r2_score, mean_squared_error
 
     from prediction.model import ModelAge
@@ -120,7 +117,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
     results_updated = update_results_age(main_category, category, algorithm, metrics)
 
-    if results_updated:
+    if save_anyways or results_updated:
         index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances.index = [index_feature_importances]
@@ -135,14 +132,14 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
-def feature_importances_survival(main_category, category, training_type, target, algorithm, random_state, n_inner_search):
+def feature_importances_survival(main_category, category, target, algorithm, random_state, n_inner_search, save_anyways):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
     from feature_importances.update_results import update_results_survival
-    from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, BASIC_TRAINING_COLUMNS
+    from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
 
 
     def any_fold_all_cencored(data):
@@ -167,9 +164,6 @@ def feature_importances_survival(main_category, category, training_type, target,
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
 
-    if training_type == "basic_training":
-        data = data[BASIC_TRAINING_COLUMNS]
-
     if (not data.empty) and (not any_fold_all_cencored(data)):
         train_set = data.sample(frac=1, random_state=0)
 
@@ -191,10 +185,10 @@ def feature_importances_survival(main_category, category, training_type, target,
     else:
         metrics = {"train C-index": -1}
 
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics)
     
-    if metrics["train C-index"] != -1 and results_updated:
-        index_feature_importances = f"feature_importances_{training_type}_{target}_{algorithm}_{random_state}"
+    if metrics["train C-index"] != -1 and (save_anyways or results_updated):
+        index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances.index = [index_feature_importances]
 
