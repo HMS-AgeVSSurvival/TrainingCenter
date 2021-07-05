@@ -52,7 +52,9 @@ def prediction_cli(argvs=sys.argv[1:]):
         type=int,
         help="The number of evaluation in the hyperparameters space",
     )
-
+    parser.add_argument(
+        "-sa", "--save_anyways", help="Save the feature importances anyways", action="store_true", default=False
+    )
     args = parser.parse_args(argvs)
     print(args)
 
@@ -63,6 +65,7 @@ def prediction_cli(argvs=sys.argv[1:]):
             args.algorithm,
             args.random_state,
             args.n_inner_search,
+            args.save_anyways
         )
     else:
         prediction_survival(
@@ -73,10 +76,11 @@ def prediction_cli(argvs=sys.argv[1:]):
             args.algorithm,
             args.random_state,
             args.n_inner_search,
+            args.save_anyways
         )
 
 
-def prediction_age(main_category, category, algorithm, random_state, n_inner_search):
+def prediction_age(main_category, category, algorithm, random_state, n_inner_search, save_anyways):
     from sklearn.metrics import r2_score, mean_squared_error
 
     from prediction.model import ModelAge
@@ -159,13 +163,13 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
 
     results_updated = update_results_age(main_category, category, algorithm, metrics)
 
-    if results_updated:
+    if save_anyways or results_updated:
         raw_data[f"prediction_age_{algorithm}_{random_state}"] = every_test_prediction
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
 
-def prediction_survival(main_category, category, training_type, target, algorithm, random_state, n_inner_search):
+def prediction_survival(main_category, category, training_type, target, algorithm, random_state, n_inner_search, save_anyways):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
@@ -248,6 +252,6 @@ def prediction_survival(main_category, category, training_type, target, algorith
     
     results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type)
     
-    if metrics["test C-index"] != -1 and results_updated:
+    if metrics["test C-index"] != -1 and (save_anyways or results_updated):
         raw_data[f"prediction_{training_type}_{target}_{algorithm}_{random_state}"] = every_test_prediction
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
