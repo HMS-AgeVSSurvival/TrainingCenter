@@ -73,7 +73,7 @@ class ModelSurvival:
         if self.algorithm == "elastic_net":
             list_feature_importances = self.net.coef_.T
         elif self.algorithm == "light_gbm":
-            list_feature_importances = self.net.feature_importances_.T
+            list_feature_importances = [self.net.feature_importances_]
     
         feature_importances = pd.DataFrame(list_feature_importances, columns=train_set_columns[~train_set_columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])], index=["feature_importances"])
         feature_importances.loc["feature_importances"] = feature_importances.loc["feature_importances"] / feature_importances.loc["feature_importances"].abs().sum()
