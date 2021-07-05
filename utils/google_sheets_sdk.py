@@ -37,6 +37,20 @@ def update_cell(main_category, row, col, value):
             handle_gspread_error(error_gspread)
 
 
+def update_cells(main_category, first_row, last_row, first_col, last_col, values):
+    first_col_letter = chr(ord('@') + first_col)
+    last_col_letter = chr(ord('@') + last_col)
+
+    cell_updated = False
+    while not cell_updated:
+        try:
+            worksheet = get_worksheet(main_category)
+            worksheet.update(f"{first_col_letter}{first_row}:{last_col_letter}{last_row}", list(map(list, values.astype(str))))
+            cell_updated = True
+        except gspread.exceptions.APIError as error_gspread:
+            handle_gspread_error(error_gspread)     
+
+
 def find_cell(main_category, name):
     got_cell = False
     while not got_cell:
