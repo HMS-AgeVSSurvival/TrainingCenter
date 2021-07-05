@@ -13,12 +13,18 @@ do
             then
                 mkdir out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/
             fi
+            if [ ! -d error/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/ ]
+            then
+                mkdir error/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/
+            fi
             
             rm out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out
-            sbatch -J basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -tt basic_training -t $TARGET -a elastic_net -rs 1 -nis 1 -sa
+            rm error/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out
+            sbatch -J basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out -e error/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/elastic_net.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -tt basic_training -t $TARGET -a elastic_net -rs 1 -nis 1 -sa
             
             rm out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out
-            sbatch -J basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -tt basic_training -t $TARGET -a light_gbm -rs 1 -nis 1 -sa
+            rm error/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out
+            sbatch -J basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out -e error/basic_prediction/$TARGET/$MAIN_CATEGORY/$CATEGORY/light_gbm.out prediction/shell_script/unit_prediction.sh -mc $MAIN_CATEGORY -c $CATEGORY -tt basic_training -t $TARGET -a light_gbm -rs 1 -nis 1 -sa
         done
     done
 done

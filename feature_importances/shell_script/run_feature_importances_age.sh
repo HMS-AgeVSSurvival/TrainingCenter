@@ -18,10 +18,10 @@ do
         
         rm out/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net.out
         rm error/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net.out
-        sbatch -J feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net.out -e error/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -t age -a elastic_net -rs 1 -nis 1 -sa
+        sbatch -J feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net -o out/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net.out -e error/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/elastic_net.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -t age -a elastic_net -rs 2 -nis 1 -sa
         
         rm out/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm.out
         rm error/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm.out
-        sbatch -J feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm.out -e error/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -t age -a light_gbm -rs 1 -nis 1 -sa
+        sbatch -J feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm -o out/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm.out -e error/feature_importances/age/$MAIN_CATEGORY/$CATEGORY/light_gbm.out feature_importances/shell_script/unit_feature_importances.sh -mc $MAIN_CATEGORY -c $CATEGORY -t age -a light_gbm -rs 2 -nis 1 -sa
     done
 done
