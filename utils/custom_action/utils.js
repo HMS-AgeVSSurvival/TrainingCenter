@@ -1,6 +1,10 @@
 const mainCategories = ["examination", "laboratory", "questionnaire"];
 const targets = ["all", "cvd", "cancer"];
-const spreadSheetResults = SpreadsheetApp.openById("1IZDQmitlE5fU_5wbu2T8jF2_4i7I7Q_VTTjv6buVFwc");
+
+
+function getSpreadSheet() {
+    return SpreadsheetApp.openById("1IZDQmitlE5fU_5wbu2T8jF2_4i7I7Q_VTTjv6buVFwc");
+}
 
 
 function findCell(sheet, name) {

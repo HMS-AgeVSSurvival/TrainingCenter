@@ -2,13 +2,13 @@ function reportAgeRange() {
     let categoryColMainCategory = 1;
 
     for (let idxMainCategories = 0; idxMainCategories < mainCategories.length; idxMainCategories++) {
-        let mainCategory = spreadSheetResults.getSheetByName(mainCategories[idxMainCategories]);
+        let mainCategory = getSpreadSheet().getSheetByName(mainCategories[idxMainCategories]);
 
         let lastRowMainCategory = mainCategory.getLastRow();
         let minColMainCategory = findCell(mainCategory, "min").getColumn();
         let maxColMainCategory = findCell(mainCategory, "max").getColumn();
 
-        let summaryMainCategory = spreadSheetResults.getSheetByName("summary " + mainCategories[idxMainCategories]);
+        let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategories[idxMainCategories]);
 
         let minColSummary = findCell(summaryMainCategory, "min").getColumn();
         let maxColSummary = findCell(summaryMainCategory, "max").getColumn();
