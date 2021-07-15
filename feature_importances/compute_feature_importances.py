@@ -92,7 +92,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
     train_set = data.sample(frac=1, random_state=0)
 
-    hyperparameters = inner_cross_validation_age(
+    hyperparameters, train_r2_std, train_rmse_std = inner_cross_validation_age(
         train_set, algorithm, random_state, n_inner_search
     )
 
@@ -113,9 +113,9 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
             squared=False,
     ).astype(np.float64)
 
-    metrics = {"train r²": train_r2, "train RMSE": train_rmse}
+    metrics = {"train r²": train_r2, "train r² std": train_r2_std, "train RMSE": train_rmse, "train RMSE std": train_rmse_std}
 
-    results_updated = update_results_age(main_category, category, algorithm, metrics)
+    results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
 
     if save_anyways or results_updated:
         index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}"
@@ -167,7 +167,7 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
     if (not data.empty) and (not any_fold_all_cencored(data)):
         train_set = data.sample(frac=1, random_state=0)
 
-        hyperparameters = inner_cross_validation_survival(
+        hyperparameters, train_c_index_std = inner_cross_validation_survival(
             train_set, algorithm, random_state, n_inner_search
         )
 
@@ -181,11 +181,11 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
 
         train_c_index = concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
              
-        metrics = {"train C-index": train_c_index}
+        metrics = {"train C-index": train_c_index, "train C-index std": train_c_index_std}
     else:
-        metrics = {"train C-index": -1}
+        metrics = {"train C-index": -1, "train C-index std": -1}
 
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, random_state)
     
     if metrics["train C-index"] != -1 and (save_anyways or results_updated):
         index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}"

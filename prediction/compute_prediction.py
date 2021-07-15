@@ -22,6 +22,7 @@ def prediction_cli(argvs=sys.argv[1:]):
         "--training_type",
         help="The training type.",
         choices=["full_training", "basic_training"],
+        default="full_training"
     )
     parser.add_argument(
         "-t",
@@ -97,6 +98,8 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
 
     list_train_r2 = []
     list_train_rmse = []
+    list_test_r2 = []
+    list_test_rmse = []
     list_test_prediction = []
 
     model = ModelAge(algorithm, random_state)
@@ -105,7 +108,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
         test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
-        hyperparameters = inner_cross_validation_age(
+        hyperparameters, _, _ = inner_cross_validation_age(
             train_set, algorithm, random_state, n_inner_search
         )
 
@@ -131,6 +134,18 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
                 squared=False,
             )
         )
+        list_test_r2.append(
+            r2_score(
+                test_set.loc[test_prediction.index, AGE_COLUMN], test_prediction
+            )
+        )
+        list_test_rmse.append(
+            mean_squared_error(
+                test_set.loc[test_prediction.index, AGE_COLUMN],
+                test_prediction,
+                squared=False,
+            )
+        )
         list_test_prediction.append(test_prediction)
     
     train_r2, train_r2_std = (
@@ -141,6 +156,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         pd.Series(list_train_rmse).mean(),
         pd.Series(list_train_rmse).std(),
     )
+    test_r2_std, test_rmse_std = pd.Series(list_test_r2).std(), pd.Series(list_test_rmse).std()
 
     every_test_prediction = pd.concat(list_test_prediction)
     test_r2 = r2_score(
@@ -158,10 +174,12 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         "train RMSE": train_rmse,
         "train RMSE std": train_rmse_std,
         "test r²": test_r2,
+        "test r² std": test_r2_std,
         "test RMSE": test_rmse,
+        "test RMSE std": test_rmse_std,
     }
 
-    results_updated = update_results_age(main_category, category, algorithm, metrics)
+    results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
 
     if save_anyways or results_updated:
         raw_data[f"prediction_age_{algorithm}_{random_state}"] = every_test_prediction
@@ -193,6 +211,7 @@ def prediction_survival(main_category, category, training_type, target, algorith
     data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     list_train_c_index = []
+    list_test_c_index = []
     list_test_prediction = []
 
     model = ModelSurvival(algorithm, random_state)
@@ -212,7 +231,7 @@ def prediction_survival(main_category, category, training_type, target, algorith
             train_set = data[data["fold"] != fold].sample(frac=1, random_state=0)
             test_set = data[data["fold"] == fold].sample(frac=1, random_state=0)
 
-            hyperparameters = inner_cross_validation_survival(
+            hyperparameters, _ = inner_cross_validation_survival(
                 train_set, algorithm, random_state, n_inner_search
             )
 
@@ -229,12 +248,17 @@ def prediction_survival(main_category, category, training_type, target, algorith
             list_train_c_index.append(
                 concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
             )
+            list_test_c_index.append(
+                concordance_index_censored(test_set.loc[test_prediction.index, DEATH_COLUMN].astype(bool), test_set.loc[test_prediction.index, FOLLOW_UP_TIME_COLUMN], test_prediction)[0]
+            )
             list_test_prediction.append(test_prediction)
         
         train_c_index, train_c_index_std = (
             pd.Series(list_train_c_index).mean(),
             pd.Series(list_train_c_index).std(),
         )
+        test_c_index_std = pd.Series(list_test_c_index).std()
+
         every_test_prediction = pd.concat(list_test_prediction)
         test_c_index = concordance_index_censored(data.loc[every_test_prediction.index, DEATH_COLUMN].astype(bool), data.loc[every_test_prediction.index, FOLLOW_UP_TIME_COLUMN], every_test_prediction)[0]
 
@@ -242,15 +266,17 @@ def prediction_survival(main_category, category, training_type, target, algorith
             "train C-index": train_c_index,
             "train C-index std": train_c_index_std,
             "test C-index": test_c_index,
+            "test C-index std": test_c_index_std,
         }
     else:
         metrics = {
             "train C-index": -1,
             "train C-index std": -1,
             "test C-index": -1,
+            "test C-index": -1,
         }
     
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type, random_state)
     
     if metrics["test C-index"] != -1 and (save_anyways or results_updated):
         raw_data[f"prediction_{training_type}_{target}_{algorithm}_{random_state}"] = every_test_prediction
