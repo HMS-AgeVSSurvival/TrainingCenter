@@ -1,5 +1,6 @@
 const mainCategories = ["examination", "laboratory", "questionnaire"];
 const targets = ["all", "cvd", "cancer"];
+const algorithms = ["elastic_net", "light_gbm"];
 
 
 function getSpreadSheet() {
@@ -8,12 +9,12 @@ function getSpreadSheet() {
 
 
 function findCell(sheet, name) {
-    return sheet.createTextFinder(name).matchEntireCell(true).findNext();
+    return sheet.createTextFinder(name).matchEntireCell(true).matchCase(true).findNext();
 }
 
 
 function findSpecificCell(sheet, name, number) {
-    return sheet.createTextFinder(name).matchEntireCell(true).findAll()[number];
+    return sheet.createTextFinder(name).matchEntireCell(true).matchCase(true).findAll()[number];
 }
 
 

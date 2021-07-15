@@ -2,7 +2,7 @@ function reportAgeRange() {
     let categoryColMainCategory = 1;
 
     for (let idxMainCategories = 0; idxMainCategories < mainCategories.length; idxMainCategories++) {
-        let mainCategory = getSpreadSheet().getSheetByName(mainCategories[idxMainCategories]);
+        let mainCategory = getSpreadSheet().getSheetByName(mainCategories[idxMainCategories] + " 1");
 
         let lastRowMainCategory = mainCategory.getLastRow();
         let minColMainCategory = findCell(mainCategory, "min").getColumn();

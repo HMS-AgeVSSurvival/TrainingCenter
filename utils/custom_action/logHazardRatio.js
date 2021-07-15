@@ -1,6 +1,3 @@
-const algorithms = ["elastic_net", "light_gbm"];
-
-
 function reportLogHazardRatioExamination() {
     reportLogHazardRatioMainCategory("examination");
 }
@@ -19,23 +16,36 @@ function reportLogHazardRatioQuestionnaire() {
 function reportLogHazardRatioMainCategory(mainCategoryName) {
     let categoryColMainCategory = 1;
 
-    let mainCategory = getSpreadSheet().getSheetByName(mainCategoryName);
-    let lastRowMainCategory = mainCategory.getLastRow();
+    let mainCategory1 = getSpreadSheet().getSheetByName(mainCategoryName + " 1");
+    let mainCategory2 = getSpreadSheet().getSheetByName(mainCategoryName + " 2");
+    let lastRowMainCategory = mainCategory1.getLastRow();
 
     let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategoryName);
 
     for (let idxAlgorithm = 0; idxAlgorithm <= 1; idxAlgorithm++) {
-        let logHazardRatioCol = findSpecificCell(mainCategory, "log hazard ratio", metricsColOrderAge[algorithms[idxAlgorithm]]).getColumn();
-        let pValueCol = findSpecificCell(mainCategory, "p-value", metricsColOrderAge[algorithms[idxAlgorithm]]).getColumn();
+        let logHazardRatioCol = findSpecificCell(mainCategory1, "log hazard ratio", metricsColOrderAge[algorithms[idxAlgorithm]]).getColumn();
+        let pValueCol = findSpecificCell(mainCategory1, "p-value", metricsColOrderAge[algorithms[idxAlgorithm]]).getColumn();
 
         let summaryLogHazardRatioCol = findSpecificCell(summaryMainCategory, "log hazard ratio", metricsColOrderAge[algorithms[idxAlgorithm]]).getColumn();
         let summaryPValueCol = findSpecificCell(summaryMainCategory, "p-value", metricsColOrderAge[algorithms[idxAlgorithm]]).getColumn();
 
         for (let categoryRowMainCategory = 4; categoryRowMainCategory <= lastRowMainCategory; categoryRowMainCategory++) {
-            let category = mainCategory.getRange(categoryRowMainCategory, categoryColMainCategory).getValue();
-            let logHazardRatio = mainCategory.getRange(categoryRowMainCategory, logHazardRatioCol).getValue();
-            let pValue = mainCategory.getRange(categoryRowMainCategory, pValueCol).getValue();
+            let logHazardRatio1 = mainCategory1.getRange(categoryRowMainCategory, logHazardRatioCol).getValue();
+            let pValue1 = mainCategory1.getRange(categoryRowMainCategory, pValueCol).getValue();
+            let logHazardRatio2 = mainCategory2.getRange(categoryRowMainCategory, logHazardRatioCol).getValue();
+            let pValue2 = mainCategory2.getRange(categoryRowMainCategory, pValueCol).getValue();
 
+            if (pValue1 == "" && pValue1 != "0" && pValue2 == "" && pValue2 != "0") {
+                continue;
+            } else if (pValue1 < pValue2) {
+                pValue = pValue1;
+                logHazardRatio = logHazardRatio1;
+            } else {
+                pValue = pValue2;
+                logHazardRatio = logHazardRatio2;
+            };
+
+            let category = mainCategory1.getRange(categoryRowMainCategory, categoryColMainCategory).getValue();
             let categoryRowSummary = findCell(summaryMainCategory, category).getRow();
 
             let rangeSummaryLogHazardRatio = summaryMainCategory.getRange(categoryRowSummary, summaryLogHazardRatioCol);
