@@ -118,7 +118,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
     results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
 
     if save_anyways or results_updated:
-        index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}"
+        index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}_train"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances.index = [index_feature_importances]
 
@@ -188,7 +188,7 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
     results_updated = update_results_survival(main_category, category, algorithm, target, metrics, random_state)
     
     if metrics["train C-index"] != -1 and (save_anyways or results_updated):
-        index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}"
+        index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_train"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances.index = [index_feature_importances]
 

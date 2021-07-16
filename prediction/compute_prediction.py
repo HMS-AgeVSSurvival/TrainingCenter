@@ -147,7 +147,18 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
             )
         )
         list_test_prediction.append(test_prediction)
-    
+
+        index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}_{int(fold)}"
+        feature_importances = model.get_feature_importances(scaled_train_set.columns)
+        feature_importances.index = [index_feature_importances]
+
+        if index_feature_importances in raw_data.index:
+            raw_data.loc[index_feature_importances] = feature_importances.loc[index_feature_importances]
+        else:
+            raw_data = raw_data.append(feature_importances)
+            raw_data.index.name = "SEQN"
+            raw_data.index = raw_data.index.astype(str, copy=False)
+
     train_r2, train_r2_std = (
         pd.Series(list_train_r2).mean(),
         pd.Series(list_train_r2).std(),
@@ -252,6 +263,18 @@ def prediction_survival(main_category, category, training_type, target, algorith
                 concordance_index_censored(test_set.loc[test_prediction.index, DEATH_COLUMN].astype(bool), test_set.loc[test_prediction.index, FOLLOW_UP_TIME_COLUMN], test_prediction)[0]
             )
             list_test_prediction.append(test_prediction)
+
+            if training_type == "full_training":
+                index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_{int(fold)}"
+                feature_importances = model.get_feature_importances(scaled_train_set.columns)
+                feature_importances.index = [index_feature_importances]
+
+                if index_feature_importances in raw_data.index:
+                    raw_data.loc[index_feature_importances] = feature_importances.loc[index_feature_importances]
+                else:
+                    raw_data = raw_data.append(feature_importances)
+                    raw_data.index.name = "SEQN"
+                    raw_data.index = raw_data.index.astype(str, copy=False)
         
         train_c_index, train_c_index_std = (
             pd.Series(list_train_c_index).mean(),
@@ -278,6 +301,6 @@ def prediction_survival(main_category, category, training_type, target, algorith
     
     results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type, random_state)
     
-    if metrics["test C-index"] != -1 and (save_anyways or results_updated):
-        raw_data[f"prediction_{training_type}_{target}_{algorithm}_{random_state}"] = every_test_prediction
+    if metrics["test C-index"] != -1  and training_type == "full_training" and (save_anyways or results_updated):
+        raw_data[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
