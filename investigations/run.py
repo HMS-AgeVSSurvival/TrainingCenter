@@ -27,9 +27,9 @@ if args.fail:
     1 / 0
 if args.memory:
     endless_list = []
-    for i in tqdm(range(100)):
+    for i in tqdm(range(10)):
         endless_list.append(pd.read_feather("data/examination/Oral__Health__-__Dentition.feather"))
 if args.time:
-    time.sleep(100)
+    time.sleep(61)
 
 
