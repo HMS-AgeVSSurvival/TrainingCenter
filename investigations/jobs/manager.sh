@@ -24,7 +24,7 @@ then
 elif [ $STATE == "FAILED" ]
 then
     echo "The dependency has failed"
-    mv investigations/out/run.out investigations/error/
+    mv investigations/out/run_{1..2}.out investigations/error/
     mv investigations/out/manager.out investigations/error/
     exit
 
@@ -59,6 +59,14 @@ then
 
     echo "Rescheduling the job with more memory: $new_memory_limit. Same time limit $TIME_LIMIT"
     new_time_limit=$TIME_LIMIT
+    
+    # If the number of hour is greater than 12 we need to change the partition
+    if (( ${new_time_limit:2:0} >= 12 ));
+    then
+        new_partition="medium"
+    else
+        new_partition="short"
+    fi
 
 elif [ $STATE == "TIMEOUT" ]
 then
@@ -74,18 +82,26 @@ then
         new_time_limit=$(( ${SPLIT_TIME_LIMIT[0]})):$(( ${SPLIT_TIME_LIMIT[1]} + 30 )):00
     fi
 
+    # If the number of hour is greater than 12 we need to change the partition
+    if (( ${new_time_limit:2:0} >= 12 ));
+    then
+        new_partition="medium"
+    else
+        new_partition="short"
+    fi
+
     echo "Rescheduling the job with more time: $new_time_limit. Same memory $MEMORY_LIMIT"
     new_memory_limit=$MEMORY_LIMIT
 
 else
     echo "The dependency has been ending with an unknown state :" $STATE
-    mv investigations/out/run.out investigations/error/
+    mv investigations/out/run_{1..2}.out investigations/error/
     mv investigations/out/manager.out investigations/error/
     exit
 fi
 
-rm investigations/out/run.out
-submission_run=$(sbatch -J run_$new_memory_limit\_$new_time_limit --mem-per-cpu=$new_memory_limit --time $new_time_limit -o investigations/out/run.out investigations/jobs/run.sh -t)
+rm investigations/out/run_{1..2}.out
+submission_run=$(sbatch -J run_$new_memory_limit\_$new_time_limit --partition $new_partition --array=1-2 --mem-per-cpu=$new_memory_limit --time $new_time_limit -o investigations/out/run_%a.out investigations/jobs/run.sh -m)
 echo $submission_run
 
 IFS=" " read -ra SPLIT_SUBMISSION_RUN <<< "$submission_run"

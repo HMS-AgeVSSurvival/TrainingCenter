@@ -20,8 +20,20 @@ parser.add_argument(
 parser.add_argument(
     "-t", "--time", help="Make the job time out", action="store_true", default=False
 )
+parser.add_argument(
+    "-rs",
+    "--random_state",
+    type=int,
+    help="Random state during the training.",
+    choices=[1, 2],
+    required=True,
+)
+
+
 args = parser.parse_args(argvs)
 print(args)
+
+print("Random state :", args.random_state)
 
 if args.fail:
     1 / 0

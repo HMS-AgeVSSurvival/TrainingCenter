@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --partition short
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
@@ -8,4 +7,4 @@ module load python/3.7.4
 source env_o2/bin/activate
 
 
-python investigations/run.py $@
+python investigations/run.py $@ -rs $SLURM_ARRAY_TASK_ID
