@@ -46,9 +46,6 @@ def feature_importances_cli(argvs=sys.argv[1:]):
         type=int,
         help="The number of evaluation in the hyperparameters space",
     )
-    parser.add_argument(
-        "-sa", "--save_anyways", help="Save the feature importances anyways", action="store_true", default=False
-    )
     args = parser.parse_args(argvs)
     print(args)
 
@@ -58,8 +55,7 @@ def feature_importances_cli(argvs=sys.argv[1:]):
             args.category,
             args.algorithm,
             args.random_state,
-            args.n_inner_search,
-            args.save_anyways
+            args.n_inner_search
         )
     else:
         feature_importances_survival(
@@ -68,12 +64,11 @@ def feature_importances_cli(argvs=sys.argv[1:]):
             args.target,
             args.algorithm,
             args.random_state,
-            args.n_inner_search,
-            args.save_anyways
+            args.n_inner_search
         )
 
 
-def feature_importances_age(main_category, category, algorithm, random_state, n_inner_search, save_anyways):
+def feature_importances_age(main_category, category, algorithm, random_state, n_inner_search):
     from sklearn.metrics import r2_score, mean_squared_error
 
     from prediction.model import ModelAge
@@ -117,7 +112,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
     results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
 
-    if save_anyways or results_updated:
+    if results_updated:
         index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}_train"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances.index = [index_feature_importances]
@@ -132,7 +127,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
-def feature_importances_survival(main_category, category, target, algorithm, random_state, n_inner_search, save_anyways):
+def feature_importances_survival(main_category, category, target, algorithm, random_state, n_inner_search):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
@@ -187,7 +182,7 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
 
     results_updated = update_results_survival(main_category, category, algorithm, target, metrics, random_state)
     
-    if metrics["train C-index"] != -1 and (save_anyways or results_updated):
+    if metrics["train C-index"] != -1 and results_updated:
         index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_train"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances.index = [index_feature_importances]

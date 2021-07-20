@@ -72,14 +72,16 @@ elif [ $STATE == "TIMEOUT" ]
 then
     echo "The dependency has been running out of time: $TIME_LIMIT"
 
-    IFS=":" read -ra SPLIT_TIME_LIMIT <<< "$TIME_LIMIT"
-
-    # If adding 30 minutes makes the time limit greater than an hour
-    if (( ${SPLIT_TIME_LIMIT[1]} + 30 > 60 ));
-    then 
-        new_time_limit=$(( ${SPLIT_TIME_LIMIT[0]} + 1 )):$(( (${SPLIT_TIME_LIMIT[1]} + 30) % 60 )):00
+    if (( ${TIME_LIMIT:2:0} >= 10 ));
+        new_time_limit=$(( ${TIME_LIMIT:2:0} + 2 )):$(( ${TIME_LIMIT:2:3} )):00
     else
-        new_time_limit=$(( ${SPLIT_TIME_LIMIT[0]})):$(( ${SPLIT_TIME_LIMIT[1]} + 30 )):00
+        # If adding 30 minutes makes the time limit greater than an hour
+        if (( ${TIME_LIMIT:2:3} + 30 > 60 ));
+        then 
+            new_time_limit=$(( ${TIME_LIMIT:2:0} + 1 )):$(( (${TIME_LIMIT:2:3} + 30) % 60 )):00
+        else
+            new_time_limit=$(( ${TIME_LIMIT:2:0} )):$(( ${TIME_LIMIT:2:3} + 30 )):00
+        fi
     fi
 
     # If the number of hour is greater than 12 we need to change the partition
@@ -101,7 +103,7 @@ else
 fi
 
 rm investigations/out/run_{1..2}.out
-submission_run=$(sbatch -J run_$new_memory_limit\_$new_time_limit --partition $new_partition --array=1-2 --mem-per-cpu=$new_memory_limit --time $new_time_limit -o investigations/out/run_%a.out investigations/jobs/run.sh -m)
+submission_run=$(sbatch -J run_$new_memory_limit\_$new_time_limit --partition $new_partition --array=1-2 --mem-per-cpu=$new_memory_limit --time $new_time_limit -o investigations/out/run_%a.out investigations/jobs/run.sh -t)
 echo $submission_run
 
 IFS=" " read -ra SPLIT_SUBMISSION_RUN <<< "$submission_run"

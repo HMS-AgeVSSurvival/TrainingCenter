@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-def prediction_cli(argvs=sys.argv[1:]):
+def argument_parser(argvs, training_mode):
     parser = argparse.ArgumentParser(
         "Pipeline to train and output the predictions from the datasets"
     )
@@ -17,13 +17,6 @@ def prediction_cli(argvs=sys.argv[1:]):
         required=True,
     )
     parser.add_argument("-c", "--category", help="Name of the category.", required=True)
-    parser.add_argument(
-        "-tt",
-        "--training_type",
-        help="The training type.",
-        choices=["full_training", "basic_training"],
-        default="full_training"
-    )
     parser.add_argument(
         "-t",
         "--target",
@@ -53,9 +46,6 @@ def prediction_cli(argvs=sys.argv[1:]):
         type=int,
         help="The number of evaluation in the hyperparameters space",
     )
-    parser.add_argument(
-        "-sa", "--save_anyways", help="Save the feature importances anyways", action="store_true", default=False
-    )
     args = parser.parse_args(argvs)
     print(args)
 
@@ -65,23 +55,29 @@ def prediction_cli(argvs=sys.argv[1:]):
             args.category,
             args.algorithm,
             args.random_state,
-            args.n_inner_search,
-            args.save_anyways
+            args.n_inner_search
         )
     else:
         prediction_survival(
             args.main_category,
             args.category,
-            args.training_type,
+            training_mode,
             args.target,
             args.algorithm,
             args.random_state,
-            args.n_inner_search,
-            args.save_anyways
+            args.n_inner_search
         )
 
 
-def prediction_age(main_category, category, algorithm, random_state, n_inner_search, save_anyways):
+def basic_prediction_cli(argvs=sys.argv[1:]):
+    argument_parser(argvs, "basic_training")
+
+    
+def prediction_cli(argvs=sys.argv[1:]):
+    argument_parser(argvs, "full_training")
+
+
+def prediction_age(main_category, category, algorithm, random_state, n_inner_search):
     from sklearn.metrics import r2_score, mean_squared_error
 
     from prediction.model import ModelAge
@@ -192,13 +188,13 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
 
     results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
 
-    if save_anyways or results_updated:
+    if results_updated:
         raw_data[f"prediction_age_{algorithm}_{random_state}"] = every_test_prediction
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")
 
 
 
-def prediction_survival(main_category, category, training_type, target, algorithm, random_state, n_inner_search, save_anyways):
+def prediction_survival(main_category, category, training_mode, target, algorithm, random_state, n_inner_search):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
@@ -234,7 +230,7 @@ def prediction_survival(main_category, category, training_type, target, algorith
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
 
-    if training_type == "basic_training":
+    if training_mode == "basic_training":
         data = data[BASIC_TRAINING_COLUMNS]
 
     if (not data.empty) and (not any_fold_all_cencored(data)):
@@ -264,7 +260,7 @@ def prediction_survival(main_category, category, training_type, target, algorith
             )
             list_test_prediction.append(test_prediction)
 
-            if training_type == "full_training":
+            if training_mode == "full_training":
                 index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_{int(fold)}"
                 feature_importances = model.get_feature_importances(scaled_train_set.columns)
                 feature_importances.index = [index_feature_importances]
@@ -299,8 +295,8 @@ def prediction_survival(main_category, category, training_type, target, algorith
             "test C-index": -1,
         }
     
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_type, random_state)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_mode, random_state)
     
-    if metrics["test C-index"] != -1  and training_type == "full_training" and (save_anyways or results_updated):
+    if metrics["test C-index"] != -1  and training_mode == "full_training" and results_updated:
         raw_data[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
         raw_data.reset_index().to_feather(f"data/{main_category}/{category}.feather")

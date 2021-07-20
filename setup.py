@@ -4,7 +4,7 @@ setup(
     name="training_center",
     version="0.1",
     description="Trains algorithms from NHANES dataset.",
-    packages=["fold_maker", "prediction", "feature_importances", "utils", "test"],
+    packages=["fold_maker", "fit_running", "prediction", "feature_importances", "utils", "test"],
     requires=["setuptools", "wheel"],
     install_requires=[
         "numpy",
@@ -26,6 +26,7 @@ setup(
         "console_scripts": [
             "make_folds=fold_maker.fold_maker:fold_maker_cli",
             "prediction=prediction.compute_prediction:prediction_cli",
+            "basic_prediction=prediction.compute_prediction:basic_prediction_cli",
             "feature_importances=feature_importances.compute_feature_importances:feature_importances_cli",
         ]
     },
