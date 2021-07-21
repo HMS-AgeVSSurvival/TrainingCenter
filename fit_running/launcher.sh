@@ -9,8 +9,6 @@ do
             IFS='/' read -r a a FILE_CATEGORY <<< $PATH_CATEGORY
             CATEGORY=$(echo $FILE_CATEGORY | cut -d "." -f 1)
             
-            MAIN_CATEGORY=laboratory
-            CATEGORY="Aldehydes__-__Serum__-__Special__Sample"
             if [ $TRAINING_TYPE = "basic_prediction" ]
             then
                 TARGETS="all cvd cancer"
@@ -24,8 +22,6 @@ do
                 
                 source fit_running/fit_running.sh -tt $TRAINING_TYPE -mc $MAIN_CATEGORY -c $CATEGORY -t $TARGET -a light_gbm -nis 1
             done
-            break
         done
-        break
     done
 done 

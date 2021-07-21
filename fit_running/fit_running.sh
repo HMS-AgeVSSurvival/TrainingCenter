@@ -6,8 +6,13 @@ source fit_running/parser.sh $@
 
 PATH_OUTPUTS=$TRAINING_TYPE/$TARGET/$MAIN_CATEGORY/$CATEGORY
 
-[ -d out/$PATH_OUTPUTS ] || mkdir out/$PATH_OUTPUTS
-[ -d error/$PATH_OUTPUTS ] || mkdir error/$PATH_OUTPUTS
+if [ $TRAINING_TYPE != "basic_prediction" ]
+then
+    [ -d dumps/$PATH_OUTPUTS ] || mkdir -p dumps/$PATH_OUTPUTS
+fi
+
+[ -d out/$PATH_OUTPUTS ] || mkdir -p out/$PATH_OUTPUTS
+[ -d error/$PATH_OUTPUTS ] || mkdir -p error/$PATH_OUTPUTS
 
 ([ ! -e out/$PATH_OUTPUTS/$ALGORITHM\_1.out ] && [ ! -e out/$PATH_OUTPUTS/$ALGORITHM\_2.out ]) || rm out/$PATH_OUTPUTS/$ALGORITHM\_{1..2}.out
 ([ ! -e error/$PATH_OUTPUTS/$ALGORITHM\_1.out ] && [ ! -e error/$PATH_OUTPUTS/$ALGORITHM\_2.out ]) || rm error/$PATH_OUTPUTS/$ALGORITHM\_{1..2}.out
