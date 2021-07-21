@@ -292,7 +292,7 @@ def prediction_survival(main_category, category, training_mode, target, algorith
             "train C-index": -1,
             "train C-index std": -1,
             "test C-index": -1,
-            "test C-index": -1,
+            "test C-index std": -1,
         }
     
     results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_mode, random_state)

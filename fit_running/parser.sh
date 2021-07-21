@@ -1,11 +1,19 @@
 #!/bin/bash
 
+unset TRAINING_TYPE
+unset TARGET
+unset MAIN_CATEGORY
+unset CATEGORY
+unset ALGORITHM
+unset N_INNER_SEARCH
+
+
 function usage()
 {
     cat << HEREDOC
 
     Usage: $fit_running [-tt TRAINING_TYPE] [-t TARGET] [-mc MAIN_CATEGORY] [-c CATEGORY] [-a ALGORITHM] [-nis N_INNER_SEARCH]
-           $manager [-jir JOB_ID_RUN] [-tt TRAINING_TYPE] [-t TARGET] [-mc MAIN_CATEGORY] [-c CATEGORY] [-a ALGORITHM] [-nis N_INNER_SEARCH]
+            $manager [-jir JOB_ID_RUN] [-tt TRAINING_TYPE] [-t TARGET] [-mc MAIN_CATEGORY] [-c CATEGORY] [-a ALGORITHM] [-nis N_INNER_SEARCH]
 
     optional arguments:
         -h, --help                              show this help message and exit
@@ -17,15 +25,18 @@ function usage()
         -a, --algorithm ALGORITHM               "elastic_net" or "light_gbm"
         -nis, --n_inner_search N_INNER_SEARCH   int, number of hyperparameter search
 
-HEREDOC >&2
+HEREDOC
 }
 
+
+HELP_CALLED=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -h | --help ) 
             usage >&2
-            exit
+            HELP_CALLED=true
+            shift
             ;;
         -jir | --job_id_run)
             JOB_ID_RUN=$2
@@ -37,7 +48,7 @@ while [[ $# -gt 0 ]]; do
                 basic_prediction | prediction | feature_importances) 
                     TRAINING_TYPE=$2;;
                 *)
-                    echo "training_type not in basic_prediction, prediction or feature_importances" >&2
+                    echo "training_type: $2 not in basic_prediction, prediction or feature_importances" >&2
                     usage
                     exit;;
             esac
@@ -49,7 +60,7 @@ while [[ $# -gt 0 ]]; do
                 examination | laboratory | questionnaire) 
                     MAIN_CATEGORY=$2;;
                 *)
-                    echo "main_category not in examination, laboratory or questionnaire" >&2
+                    echo "main_category: $2 not in examination, laboratory or questionnaire" >&2
                     usage
                     exit;;
             esac
@@ -66,7 +77,7 @@ while [[ $# -gt 0 ]]; do
                 age | all | cvd | cancer) 
                     TARGET=$2;;
                 *)
-                    echo "target not in age, all, cvd or cancer" >&2
+                    echo "target: $2 not in age, all, cvd or cancer" >&2
                     usage
                     exit;;
             esac
@@ -78,7 +89,7 @@ while [[ $# -gt 0 ]]; do
                 elastic_net | light_gbm) 
                     ALGORITHM=$2;;
                 *)
-                    echo "algorithm not in elastic_net or light_gbm" >&2
+                    echo "algorithm: $2 not in elastic_net or light_gbm" >&2
                     usage
                     exit;;
             esac
@@ -98,14 +109,17 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-if [ $CATEGORY == "" ]
+if [ !$HELP_CALLED ];
 then
-    echo "CATEGORY is missing" >&2
-    usage
-    exit
-else if [ $N_INNER_SEARCH == ""]
-then
-    echo "N_INNER_SEARCH is missing" >&2
-    usage
-    exit
+    if [[ $CATEGORY == "" ]]
+    then
+        echo "CATEGORY is missing" >&2
+        usage
+        exit
+    elif [[ $N_INNER_SEARCH == "" ]]
+    then
+        echo "N_INNER_SEARCH is missing" >&2
+        usage
+        exit
+    fi
 fi
