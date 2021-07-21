@@ -4,7 +4,7 @@ setup(
     name="training_center",
     version="0.1",
     description="Trains algorithms from NHANES dataset.",
-    packages=["fold_maker", "fit_running", "prediction", "feature_importances", "utils", "test"],
+    packages=["fold_maker", "shape_age_range", "fit_running", "prediction", "feature_importances", "utils", "test"],
     requires=["setuptools", "wheel"],
     install_requires=[
         "numpy",

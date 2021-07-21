@@ -7,3 +7,6 @@ srun --partition interactive --job-name "InteractiveJob" --cpus-per-task 1 --mem
 module load gcc/6.2.0 python/3.7.4
 source env_o2/bin/activate
 jupyter notebook casting/casting.ipynb --port=8888 --browser='none'
+
+# Squeue
+squeue -u $USER -O "Name:100,TimeUsed,Reason" -i 60%
