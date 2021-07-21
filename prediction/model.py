@@ -27,12 +27,13 @@ class ModelAge:
     
     def get_feature_importances(self, train_set_columns):
         if self.algorithm == "elastic_net":
-            list_feature_importances = [self.net.coef_]
+            list_feature_importances = self.net.coef_
         elif self.algorithm == "light_gbm":
-            list_feature_importances = [self.net.feature_importances_]
-    
-        feature_importances = pd.DataFrame(list_feature_importances, columns=train_set_columns[train_set_columns != AGE_COLUMN], index=["feature_importances"])
-        feature_importances.loc["feature_importances"] = feature_importances.loc["feature_importances"] / feature_importances.loc["feature_importances"].abs().sum()
+            list_feature_importances = self.net.feature_importances_
+
+
+        feature_importances = pd.Series(list_feature_importances, index=train_set_columns[train_set_columns != AGE_COLUMN])
+        feature_importances = feature_importances / feature_importances.abs().sum()
         return feature_importances
 
 
@@ -71,10 +72,10 @@ class ModelSurvival:
     
     def get_feature_importances(self, train_set_columns):
         if self.algorithm == "elastic_net":
-            list_feature_importances = self.net.coef_.T
+            list_feature_importances = self.net.coef_.reshape((-1))
         elif self.algorithm == "light_gbm":
-            list_feature_importances = [self.net.feature_importances_]
+            list_feature_importances = self.net.feature_importances_
     
-        feature_importances = pd.DataFrame(list_feature_importances, columns=train_set_columns[~train_set_columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])], index=["feature_importances"])
-        feature_importances.loc["feature_importances"] = feature_importances.loc["feature_importances"] / (feature_importances.loc["feature_importances"].abs().sum() + 1e-16)
+        feature_importances = pd.Series(list_feature_importances, index=train_set_columns[~train_set_columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])])
+        feature_importances = feature_importances / (feature_importances.abs().sum() + 1e-16)
         return feature_importances
