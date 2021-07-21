@@ -79,9 +79,6 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
 
-    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
-    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
-
     feature_importances_to_dump = pd.DataFrame(None, index=data.columns)
 
     model = ModelAge(algorithm, random_state)
@@ -139,9 +136,6 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
 
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
-
-    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
-    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     feature_importances_to_dump = pd.DataFrame(None, index=data.columns)
 

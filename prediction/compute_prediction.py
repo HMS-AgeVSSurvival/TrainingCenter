@@ -88,9 +88,6 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
 
-    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
-    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
-
     feature_importances_to_dump = pd.DataFrame(None, index=data.columns)
     predictions_to_dump = pd.DataFrame(None, index=data.index)
 
@@ -209,9 +206,6 @@ def prediction_survival(main_category, category, training_mode, target, algorith
 
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
-
-    data.drop(columns=data.columns[data.columns.str.startswith("prediction")], inplace=True)
-    data.drop(index=data.index[data.index.astype(str).str.startswith("feature_importances")], inplace=True)
 
     feature_importances_to_dump = pd.DataFrame(None, index=data.columns)
     predictions_to_dump = pd.DataFrame(None, index=data.index)
