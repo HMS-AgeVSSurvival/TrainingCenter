@@ -118,5 +118,5 @@ IFS=" " read -ra SPLIT_SUBMISSION_RUN <<< $submission_run
 JOB_ID_RUN=${SPLIT_SUBMISSION_RUN[-1]}
 
 rm out/$PATH_OUTPUTS/$ALGORITHM\_manager.out
-submission_manager=$(sbatch -J $PATH_OUTPUTS/$ALGORITHM\_manager --dependency=afterany:$JOB_ID_RUN -o out/$PATH_OUTPUTS/$ALGORITHM\manager.out fit_running/stage/manager.sh -jir $JOB_ID_RUN -tt $TRAINING_TYPE -mc $MAIN_CATEGORY -c $CATEGORY -t $TARGET -a $ALGORITHM -nis $N_INNER_SEARCH)
+submission_manager=$(sbatch -J $PATH_OUTPUTS/$ALGORITHM\_manager --dependency=afterany:$JOB_ID_RUN -o out/$PATH_OUTPUTS/$ALGORITHM\_manager.out fit_running/stage/manager.sh -jir $JOB_ID_RUN -tt $TRAINING_TYPE -mc $MAIN_CATEGORY -c $CATEGORY -t $TARGET -a $ALGORITHM -nis $N_INNER_SEARCH)
 echo $submission_manager
