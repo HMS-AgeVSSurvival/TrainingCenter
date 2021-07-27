@@ -15,7 +15,7 @@ def update_results_age(main_category, category, algorithm, metrics, random_state
     test_r2_column = findall_cells(main_category + f" {random_state}", "test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
 
     previous_test_r2 = get_cell(main_category + f" {random_state}", category_row, test_r2_column).value
-    if previous_test_r2 is None or float(previous_test_r2) < metrics["test r²"]:
+    if previous_test_r2 is None or float(previous_test_r2) <= metrics["test r²"]:
         print(metrics)
         results_updated = True
         for metric_name in list(metrics.keys()):
@@ -32,7 +32,7 @@ def update_results_survival(main_category, category, algorithm, target, metrics,
     test_c_index_column = findall_cells(main_category + f" {random_state}", "test C-index")[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
 
     previous_test_c_index = get_cell(main_category + f" {random_state}", category_row, test_c_index_column).value
-    if previous_test_c_index is None or float(previous_test_c_index) < metrics["test C-index"]:
+    if previous_test_c_index is None or float(previous_test_c_index) <= metrics["test C-index"]:
         print(metrics)
         results_updated = True
         for metric_name in list(metrics.keys()):
