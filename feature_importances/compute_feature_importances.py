@@ -18,17 +18,17 @@ def feature_importances_cli(argvs=sys.argv[1:]):
     )
     parser.add_argument("-c", "--category", help="Name of the category.", required=True)
     parser.add_argument(
-        "-a",
-        "--algorithm",
-        help="The name of the algorithm.",
-        choices=["elastic_net", "light_gbm"],
-        required=True,
-    )
-    parser.add_argument(
         "-t",
         "--target",
         help="The target of the algorithm.",
         choices=["age", "all", "cvd", "cancer"],
+        required=True,
+    )
+    parser.add_argument(
+        "-a",
+        "--algorithm",
+        help="The name of the algorithm.",
+        choices=["elastic_net", "light_gbm"],
         required=True,
     )
     parser.add_argument(
@@ -46,7 +46,6 @@ def feature_importances_cli(argvs=sys.argv[1:]):
         type=int,
         help="The number of evaluation in the hyperparameters space",
     )
-
     args = parser.parse_args(argvs)
     print(args)
 
@@ -56,16 +55,16 @@ def feature_importances_cli(argvs=sys.argv[1:]):
             args.category,
             args.algorithm,
             args.random_state,
-            args.n_inner_search,
+            args.n_inner_search
         )
     else:
         feature_importances_survival(
             args.main_category,
             args.category,
-            args.algorithm,
             args.target,
+            args.algorithm,
             args.random_state,
-            args.n_inner_search,
+            args.n_inner_search
         )
 
 
@@ -75,16 +74,18 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
     from prediction.model import ModelAge
     from prediction.scale import scale_age
     from prediction.inner_cross_validation import inner_cross_validation_age
-    from feature_importances.utils import update_results_age
+    from feature_importances.update_results import update_results_age
     from prediction import AGE_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
+
+    feature_importances_to_dump = pd.DataFrame(None, index=data.columns)
 
     model = ModelAge(algorithm, random_state)
 
     train_set = data.sample(frac=1, random_state=0)
 
-    hyperparameters = inner_cross_validation_age(
+    hyperparameters, train_r2_std, train_rmse_std = inner_cross_validation_age(
         train_set, algorithm, random_state, n_inner_search
     )
 
@@ -105,21 +106,38 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
             squared=False,
     ).astype(np.float64)
 
-    metrics = {"train r²": train_r2, "train RMSE": train_rmse}
+    metrics = {"train r²": train_r2, "train r² std": train_r2_std, "train RMSE": train_rmse, "train RMSE std": train_rmse_std}
 
-    update_results_age(main_category, category, algorithm, metrics)
+    results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
+
+    if results_updated:
+        index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}_train"
+        feature_importances = model.get_feature_importances(scaled_train_set.columns)
+        feature_importances_to_dump[index_feature_importances] = feature_importances
+
+        feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
 
 
-def feature_importances_survival(main_category, category, algorithm, target, random_state, n_inner_search):
+def feature_importances_survival(main_category, category, target, algorithm, random_state, n_inner_search):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
-    from feature_importances.utils import update_results_survival
+    from feature_importances.update_results import update_results_survival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
 
+
+    def any_fold_all_cencored(data):
+        for idx_fold in data["fold"].drop_duplicates():
+            if (data.loc[data["fold"] == idx_fold, DEATH_COLUMN] == 1.0).sum() == 0:
+                return True
+        return False
+
+
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
+
+    feature_importances_to_dump = pd.DataFrame(None, index=data.columns)
 
     model = ModelSurvival(algorithm, random_state)
 
@@ -130,10 +148,10 @@ def feature_importances_survival(main_category, category, algorithm, target, ran
     elif target == "cancer":
         data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
 
-    if (not data.empty) and (data[DEATH_COLUMN].sum() > len(data["fold"].drop_duplicates())):
+    if (not data.empty) and (not any_fold_all_cencored(data)):
         train_set = data.sample(frac=1, random_state=0)
 
-        hyperparameters = inner_cross_validation_survival(
+        hyperparameters, train_c_index_std = inner_cross_validation_survival(
             train_set, algorithm, random_state, n_inner_search
         )
 
@@ -147,11 +165,14 @@ def feature_importances_survival(main_category, category, algorithm, target, ran
 
         train_c_index = concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
              
-        metrics = {"train C-index": train_c_index}
-
-        update_results_survival(main_category, category, algorithm, target, metrics)
-
+        metrics = {"train C-index": train_c_index, "train C-index std": train_c_index_std}
     else:
-        metrics = {"train C-index": -1}
+        metrics = {"train C-index": -1, "train C-index std": -1}
 
-        update_results_survival(main_category, category, algorithm, target, metrics)
+    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, random_state)
+    
+    if metrics["train C-index"] != -1 and results_updated:
+        index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_train"
+        feature_importances = model.get_feature_importances(scaled_train_set.columns)
+        feature_importances_to_dump[index_feature_importances] = feature_importances
+        feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}_train.feather")

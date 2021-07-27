@@ -24,6 +24,17 @@ class ModelAge:
 
     def predict(self, samples):
         return pd.Series(self.net.predict(samples[samples.columns[samples.columns != AGE_COLUMN]]), index=samples.index, name="prediction")
+    
+    def get_feature_importances(self, train_set_columns):
+        if self.algorithm == "elastic_net":
+            list_feature_importances = self.net.coef_
+        elif self.algorithm == "light_gbm":
+            list_feature_importances = self.net.feature_importances_
+
+
+        feature_importances = pd.Series(list_feature_importances, index=train_set_columns[train_set_columns != AGE_COLUMN])
+        feature_importances = feature_importances / feature_importances.abs().sum()
+        return feature_importances
 
 
 class ModelSurvival:
@@ -58,3 +69,13 @@ class ModelSurvival:
 
     def predict(self, samples):
         return pd.Series(self.net.predict(samples[samples.columns[~samples.columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])]]), index=samples.index, name="prediction")
+    
+    def get_feature_importances(self, train_set_columns):
+        if self.algorithm == "elastic_net":
+            list_feature_importances = self.net.coef_.reshape((-1))
+        elif self.algorithm == "light_gbm":
+            list_feature_importances = self.net.feature_importances_
+    
+        feature_importances = pd.Series(list_feature_importances, index=train_set_columns[~train_set_columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])])
+        feature_importances = feature_importances / (feature_importances.abs().sum() + 1e-16)
+        return feature_importances
