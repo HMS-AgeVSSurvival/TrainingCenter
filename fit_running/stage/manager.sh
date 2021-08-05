@@ -9,6 +9,9 @@ module load gcc/6.2.0
 module load python/3.7.4
 source env_o2/bin/activate
 
+echo ""
+echo date
+echo ""
 
 source fit_running/training_parser.sh 
 
@@ -20,7 +23,7 @@ PATH_OUTPUTS=$TRAINING_TYPE/$TARGET/$MAIN_CATEGORY/$CATEGORY
 
 DEPENDENCY_INFO=$(sacct -X -n -o state%30,Timelimit,ReqMem,Partition -j $JOB_ID_RUN)
 
-local IFS=" " read -ra SPLIT_INFO <<< $DEPENDENCY_INFO
+IFS=" " read -ra SPLIT_INFO <<< $DEPENDENCY_INFO
 STATE_1=${SPLIT_INFO[0]}
 TIME_LIMIT=${SPLIT_INFO[1]}
 MEMORY_LIMIT=${SPLIT_INFO[2]}
@@ -47,10 +50,16 @@ update_requirements
 
 source fit_running/stage/job_launcher.sh
 
-if [ $RELAUNCH_1 && $RELAUNCH_2 ]
+if [[ $RELAUNCH_1 && $RELAUNCH_2 ]]
 then
     launch_array
-elif [ $RELAUNCH_1 ]
+elif [[ $RELAUNCH_1 ]]
+then
     launch_job 1
-elif [ $RELAUNCH_2 ]
+elif [[ $RELAUNCH_2 ]]
+then
     launch_job 2
+else
+    cat out/$PATH_OUTPUTS/$ALGORITHM\_manager.out >> out/$PATH_OUTPUTS/memory_$ALGORITHM\_manager.out
+    rm out/$PATH_OUTPUTS/$ALGORITHM\_manager.out
+fi

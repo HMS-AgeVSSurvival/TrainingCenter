@@ -2,35 +2,39 @@
 
 function check_if_relaunch() {
     local RANDOM_STATE=$1
-    if [ $RANDOM_STATE == "1"]
+    if [[ $RANDOM_STATE == "1" ]]
     then 
         local STATE=$STATE_1
     else
         local STATE=$STATE_2
     fi
 
-    if [ $STATE == "COMPLETED" ] || [ $STATE == "" ]
+    if [[ $STATE == "COMPLETED" ]] || [[ $STATE == "" ]]
     then
-        echo "The job has been run successfully"
+        echo "The dependency with random state $RANDOM_STATE has been run successfully"
+        cat out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out >> out/$PATH_OUTPUTS/memory_$ALGORITHM\_$RANDOM_STATE.out
+        rm out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out
         RELAUNCH=false
-    elif [ $STATE == "FAILED" ]
+    elif [[ $STATE == "FAILED" ]]
     then
-        echo "The dependency has failed" >&2
-        mv out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out error/$PATH_OUTPUTS/
-        cp out/$PATH_OUTPUTS/$ALGORITHM\_manager.out error/$PATH_OUTPUTS/$ALGORITHM\_manager_$RANDOM_STATE.out
+        echo "The dependency with random state $RANDOM_STATE has failed" >&2
+        cat out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out >> out/$PATH_OUTPUTS/memory_$ALGORITHM\_$RANDOM_STATE.out
+        rm out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out
+        mv out/$PATH_OUTPUTS/memory_$ALGORITHM\_$RANDOM_STATE.out error/$PATH_OUTPUTS/
         RELAUNCH=false
-    elif [ $STATE == "OUT_OF_MEMORY" ]
+    elif [[ $STATE == "OUT_OF_MEMORY" ]]
     then
-        echo "The dependency has been running out of memory: $MEMORY_LIMIT"
+        echo "The dependency with random state $RANDOM_STATE has been running out of memory: $MEMORY_LIMIT"
         RELAUNCH=true
-    elif [ $STATE == "TIMEOUT" ]
+    elif [[ $STATE == "TIMEOUT" ]]
     then
-        echo "The dependency has been running out of time: $TIME_LIMIT"
+        echo "The dependency with random state $RANDOM_STATE has been running out of time: $TIME_LIMIT"
         RELAUNCH=true
     else
-        echo "The dependency has been ending with an unknown state : $STATE" >&2
-        mv out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out error/$PATH_OUTPUTS/
-        cp out/$PATH_OUTPUTS/$ALGORITHM\_manager.out error/$PATH_OUTPUTS/$ALGORITHM\_manager_$RANDOM_STATE.out
+        echo "The dependency with random state $RANDOM_STATE has been ending with an unknown state : $STATE" >&2
+        cat out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out >> out/$PATH_OUTPUTS/memory_$ALGORITHM\_$RANDOM_STATE.out
+        rm out/$PATH_OUTPUTS/$ALGORITHM\_$RANDOM_STATE.out
+        mv out/$PATH_OUTPUTS/memory_$ALGORITHM\_$RANDOM_STATE.out error/$PATH_OUTPUTS/
         RELAUNCH=false
     fi
 }
@@ -38,7 +42,7 @@ function check_if_relaunch() {
 function add_memory() {
     echo "Add memory"
 
-    if [[ $MEMORY_LIMIT =~ "M" ]];  # Double the memory limit
+    if [[ $new_memory_limit =~ "M" ]];  # Double the memory limit
     then
         local memory_digits=${new_memory_limit%M*}
         if (( 2 * $memory_digits < 1000 ));
@@ -65,7 +69,7 @@ function add_memory() {
 function add_time() {
     echo "Add time"
 
-    local IFS=":" read -ra SPLIT_TIME_LIMIT <<< $new_time_limit
+    IFS=":" read -ra SPLIT_TIME_LIMIT <<< $new_time_limit
     local HOURS=$(( 10#${SPLIT_TIME_LIMIT[0]} ))
     local MINUTES=$(( 10#${SPLIT_TIME_LIMIT[1]} ))
     local SECONDS=$(( 10#${SPLIT_TIME_LIMIT[2]} ))
@@ -82,13 +86,13 @@ function add_time() {
         new_time_limit=$(( $HOURS + 2 )):$(( $MINUTES )):$SECONDS
     fi
     
-    local IFS=":" read -ra SPLIT_NEW_TIME_LIMIT <<< $new_time_limit
+    IFS=":" read -ra SPLIT_NEW_TIME_LIMIT <<< $new_time_limit
     local NEW_HOURS=$(( 10#${SPLIT_NEW_TIME_LIMIT[0]} ))
 
     if (( $NEW_HOURS < 12 ));
     then
         new_partition="short"
-        new_n_inner_search=$N_INNER_SEARCH
+        new_n_inner_search=$new_n_inner_search
     else
         new_partition="medium"
         new_n_inner_search=1
@@ -97,12 +101,12 @@ function add_time() {
 
 
 function update_requirements() {
-    if [ $STATE_1 == "OUT_OF_MEMORY" || $STATE_2 == "OUT_OF_MEMORY"]
+    if [[ $STATE_1 == "OUT_OF_MEMORY" || $STATE_2 == "OUT_OF_MEMORY" ]]
     then
         add_memory
     fi
-    if [ $STATE_1 == "TIMEOUT" || $STATE_2 == "TIMEOUT" ]
-        add_time
+    if [[ $STATE_1 == "TIMEOUT" || $STATE_2 == "TIMEOUT" ]]
     then
+        add_time
     fi
 }
