@@ -10,7 +10,7 @@ module load python/3.7.4
 source env_o2/bin/activate
 
 echo ""
-echo date
+date
 echo ""
 
 source fit_running/training_parser.sh 
@@ -50,13 +50,13 @@ update_requirements
 
 source fit_running/stage/job_launcher.sh
 
-if [[ $RELAUNCH_1 && $RELAUNCH_2 ]]
+if [[ $RELAUNCH_1 == true ]] && [[ $RELAUNCH_2 == true ]]
 then
     launch_array
-elif [[ $RELAUNCH_1 ]]
+elif [[ $RELAUNCH_1 == true ]]
 then
     launch_job 1
-elif [[ $RELAUNCH_2 ]]
+elif [[ $RELAUNCH_2 == true ]]
 then
     launch_job 2
 else
