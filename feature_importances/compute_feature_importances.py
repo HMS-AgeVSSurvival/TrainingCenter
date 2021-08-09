@@ -74,7 +74,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
     from prediction.model import ModelAge
     from prediction.scale import scale_age
     from prediction.inner_cross_validation import inner_cross_validation_age
-    from feature_importances.update_results import update_results_age
+    from feature_importances.update_results import UpdateResultsAge
     from prediction import AGE_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
@@ -108,14 +108,16 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
     metrics = {"train r²": train_r2, "train r² std": train_r2_std, "train RMSE": train_rmse, "train RMSE std": train_rmse_std}
 
-    results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
+    update_results_age = UpdateResultsAge()
 
-    if results_updated:
+    if update_results_age.check_better_training(main_category, category, algorithm, metrics, random_state):
         index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}_train"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances_to_dump[index_feature_importances] = feature_importances
 
         feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
+
+        update_results_age.update_results(main_category, algorithm, metrics, random_state)
 
 
 def feature_importances_survival(main_category, category, target, algorithm, random_state, n_inner_search):
@@ -124,7 +126,7 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
-    from feature_importances.update_results import update_results_survival
+    from feature_importances.update_results import UpdateResultsSurvival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN
 
 
@@ -169,10 +171,12 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
     else:
         metrics = {"train C-index": -1, "train C-index std": -1}
 
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, random_state)
+    update_results_survival = UpdateResultsSurvival()
     
-    if metrics["train C-index"] != -1 and results_updated:
+    if metrics["train C-index"] != -1 and update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, random_state):
         index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_train"
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances_to_dump[index_feature_importances] = feature_importances
         feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
+
+        update_results_survival.update_results(main_category, algorithm, target, metrics, random_state)

@@ -83,7 +83,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
     from prediction.model import ModelAge
     from prediction.scale import scale_age
     from prediction.inner_cross_validation import inner_cross_validation_age
-    from prediction.update_results import update_results_age
+    from prediction.update_results import UpdateResultsAge
     from prediction import AGE_COLUMN
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
@@ -178,14 +178,15 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         "test RMSE std": test_rmse_std,
     }
 
-    results_updated = update_results_age(main_category, category, algorithm, metrics, random_state)
+    update_results_age = UpdateResultsAge()
 
-    if results_updated:
+    if update_results_age.check_better_training(main_category, category, algorithm, metrics, random_state):
         predictions_to_dump[f"prediction_age_{algorithm}_{random_state}"] = every_test_prediction
         
         predictions_to_dump.reset_index().to_feather(f"dumps/prediction/age/{main_category}/{category}/{algorithm}_{random_state}.feather")
         feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}.feather")
 
+        update_results_age.update_results(main_category, algorithm, metrics, random_state)
 
 
 def prediction_survival(main_category, category, training_mode, target, algorithm, random_state, n_inner_search):
@@ -194,7 +195,7 @@ def prediction_survival(main_category, category, training_mode, target, algorith
     from prediction.model import ModelSurvival
     from prediction.scale import scale_survival
     from prediction.inner_cross_validation import inner_cross_validation_survival
-    from prediction.update_results import update_results_survival
+    from prediction.update_results import UpdateResultsSurvival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, BASIC_TRAINING_COLUMNS
 
 
@@ -281,10 +282,13 @@ def prediction_survival(main_category, category, training_mode, target, algorith
             "test C-index std": -1,
         }
     
-    results_updated = update_results_survival(main_category, category, algorithm, target, metrics, training_mode, random_state)
-    
-    if metrics["test C-index"] != -1  and training_mode == "full_training" and results_updated:
-        predictions_to_dump[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
-        
-        predictions_to_dump.reset_index().to_feather(f"dumps/prediction/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
-        feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
+    update_results_survival = UpdateResultsSurvival()
+
+    if metrics["test C-index"] != -1 and update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, training_mode, random_state):
+        if training_mode == "full_training":
+            predictions_to_dump[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
+            
+            predictions_to_dump.reset_index().to_feather(f"dumps/prediction/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
+            feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
+
+        update_results_survival.update_results(main_category, algorithm, target, metrics, training_mode, random_state)

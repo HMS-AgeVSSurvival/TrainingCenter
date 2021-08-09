@@ -8,35 +8,51 @@ METRICS_COL_ORDER_SURVIVAL = {"full_training": {"all": {"elastic_net": 0, "light
 BEST_METRICS_COL_ORDER_SURVIVAL = {"all": 0, "cvd": 1, "cancer": 2}
 
 
-def update_results_age(main_category, category, algorithm, metrics, random_state):
-    results_updated = False
+class UpdateResultsAge:
+    def __init__(self):
 
-    category_row = find_cell(main_category + f" {random_state}", category).row
-    test_r2_column = findall_cells(main_category + f" {random_state}", "test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
+        self.category_row = None
+        self.test_r2_column = None
 
-    previous_test_r2 = get_cell(main_category + f" {random_state}", category_row, test_r2_column).value
-    if previous_test_r2 is None or float(previous_test_r2) <= metrics["test r²"]:
-        print(metrics)
-        results_updated = True
-        for metric_name in list(metrics.keys()):
-            metric_column = findall_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_AGE[algorithm]].col
-            update_cell(main_category + f" {random_state}", category_row, metric_column, np.round(metrics[metric_name], 3))
+    def check_better_training(self, main_category, category, algorithm, metrics, random_state):
+        self.category_row = find_cell(main_category + f" {random_state}", category).row
+        self.test_r2_column = findall_cells(main_category + f" {random_state}", "test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
 
-    return results_updated
-
-
-def update_results_survival(main_category, category, algorithm, target, metrics, training_mode, random_state):
-    results_updated = False
-
-    category_row = find_cell(main_category + f" {random_state}", category).row
-    test_c_index_column = findall_cells(main_category + f" {random_state}", "test C-index")[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
-
-    previous_test_c_index = get_cell(main_category + f" {random_state}", category_row, test_c_index_column).value
-    if previous_test_c_index is None or float(previous_test_c_index) <= metrics["test C-index"]:
-        print(metrics)
-        results_updated = True
-        for metric_name in list(metrics.keys()):
-            metric_column = findall_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
-            update_cell(main_category + f" {random_state}", category_row, metric_column, np.round(metrics[metric_name], 3))
+        previous_test_r2 = get_cell(main_category + f" {random_state}", self.category_row, self.test_r2_column).value
         
-    return results_updated
+        return previous_test_r2 is None or float(previous_test_r2) <= metrics["test r²"]
+
+    def update_results(self, main_category, algorithm, metrics, random_state):
+        print(metrics)
+        for metric_name in list(metrics.keys()):
+            if metric_name == "test r²":
+                continue
+            metric_column = findall_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_AGE[algorithm]].col
+            update_cell(main_category + f" {random_state}", self.category_row, metric_column, np.round(metrics[metric_name], 3))
+        
+        update_cell(main_category + f" {random_state}", self.category_row, self.test_r2_column, np.round(metrics["test r²"], 3))
+
+
+
+class UpdateResultsSurvival:
+    def __init__(self):
+        self.category_row = None
+        self.previous_test_c_index = None
+
+    def check_better_training(self, main_category, category, algorithm, target, metrics, training_mode, random_state):
+        self.category_row = find_cell(main_category + f" {random_state}", category).row
+        self.test_c_index_column = findall_cells(main_category + f" {random_state}", "test C-index")[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
+
+        previous_test_c_index = get_cell(main_category + f" {random_state}", self.category_row, self.test_c_index_column).value
+        
+        return previous_test_c_index is None or float(previous_test_c_index) <= metrics["test C-index"]
+
+    def update_results(self, main_category, algorithm, target, metrics, training_mode, random_state):
+        print(metrics)
+        for metric_name in list(metrics.keys()):
+            if metric_name == "test C-index":
+                continue
+            metric_column = findall_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
+            update_cell(main_category + f" {random_state}", self.category_row, metric_column, np.round(metrics[metric_name], 3))
+        
+        update_cell(main_category + f" {random_state}", self.category_row, self.test_c_index_column, np.round(metrics["test C-index"], 3))
