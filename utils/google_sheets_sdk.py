@@ -3,6 +3,7 @@ import time
 import numpy as np
 import gspread
 import json
+from json import JSONDecodeError
 
 from prediction import COLOR_ALGORITHM
 
@@ -16,7 +17,10 @@ def get_worksheet(main_category):
 
 
 def handle_gspread_error(error):
-    error = json.loads(error.response._content)
+    try:
+        error = json.loads(error.response._content)
+    except JSONDecodeError:
+        raise error
 
     if error["error"]["code"] in [429, 101, 500]:  # Means too many Google Sheet API's calls
         sleep_time = 61

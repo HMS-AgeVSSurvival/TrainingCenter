@@ -173,10 +173,11 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
 
     update_results_survival = UpdateResultsSurvival()
     
-    if metrics["train C-index"] != -1 and update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, random_state):
-        index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_train"
-        feature_importances = model.get_feature_importances(scaled_train_set.columns)
-        feature_importances_to_dump[index_feature_importances] = feature_importances
-        feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
+    if update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, random_state):
+        if metrics["train C-index"] != -1:
+            index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_train"
+            feature_importances = model.get_feature_importances(scaled_train_set.columns)
+            feature_importances_to_dump[index_feature_importances] = feature_importances
+            feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
 
         update_results_survival.update_results(main_category, algorithm, target, metrics, random_state)

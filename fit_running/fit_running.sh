@@ -18,8 +18,8 @@ fi
 
 echo -n > out/$PATH_OUTPUTS/$ALGORITHM\_1.out
 echo -n > out/$PATH_OUTPUTS/$ALGORITHM\_2.out
-[ ! -e error/$PATH_OUTPUTS/$ALGORITHM\_1.out ] || rm error/$PATH_OUTPUTS/$ALGORITHM\_1.out
-[ ! -e error/$PATH_OUTPUTS/$ALGORITHM\_2.out ] || rm error/$PATH_OUTPUTS/$ALGORITHM\_2.out
+[ ! -e error/$PATH_OUTPUTS/memory_$ALGORITHM\_1.out ] || rm error/$PATH_OUTPUTS/memory_$ALGORITHM\_1.out
+[ ! -e error/$PATH_OUTPUTS/memory_$ALGORITHM\_2.out ] || rm error/$PATH_OUTPUTS/memory_$ALGORITHM\_2.out
 echo -n > out/$PATH_OUTPUTS/memory_$ALGORITHM\_1.out
 echo -n > out/$PATH_OUTPUTS/memory_$ALGORITHM\_2.out
 
@@ -30,7 +30,6 @@ IFS=" " read -ra SPLIT_SUBMISSION_RUN <<< $submission_run
 JOB_ID_RUN=${SPLIT_SUBMISSION_RUN[-1]}
 
 echo -n > out/$PATH_OUTPUTS/$ALGORITHM\_manager.out
-[ ! -e error/$PATH_OUTPUTS/$ALGORITHM\_manager.out ] || rm error/$PATH_OUTPUTS/$ALGORITHM\_manager.out
 echo -n > out/$PATH_OUTPUTS/memory_$ALGORITHM\_manager.out
 
 submission_manager=$(sbatch -J $PATH_OUTPUTS/$ALGORITHM\_manager --dependency=afterany:$JOB_ID_RUN -o out/$PATH_OUTPUTS/$ALGORITHM\_manager.out fit_running/stage/manager.sh -jir $JOB_ID_RUN -tt $TRAINING_TYPE -mc $MAIN_CATEGORY -c $CATEGORY -t $TARGET -a $ALGORITHM -nis $N_INNER_SEARCH)

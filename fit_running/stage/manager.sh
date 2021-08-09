@@ -21,7 +21,7 @@ parse_training_arguments $@
 PATH_OUTPUTS=$TRAINING_TYPE/$TARGET/$MAIN_CATEGORY/$CATEGORY
 
 
-DEPENDENCY_INFO=$(sacct -X -n -o state%30,Timelimit,ReqMem,Partition -j $JOB_ID_RUN)
+DEPENDENCY_INFO=$(sacct -X -n -o state%30,Timelimit,ReqMem,Partition -j $JOB_ID_RUN -u $USER)
 
 IFS=" " read -ra SPLIT_INFO <<< $DEPENDENCY_INFO
 STATE_1=${SPLIT_INFO[0]}

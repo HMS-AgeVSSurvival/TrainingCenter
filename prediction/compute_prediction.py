@@ -284,8 +284,8 @@ def prediction_survival(main_category, category, training_mode, target, algorith
     
     update_results_survival = UpdateResultsSurvival()
 
-    if metrics["test C-index"] != -1 and update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, training_mode, random_state):
-        if training_mode == "full_training":
+    if update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, training_mode, random_state):
+        if training_mode == "full_training" and metrics["test C-index"] != -1:
             predictions_to_dump[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
             
             predictions_to_dump.reset_index().to_feather(f"dumps/prediction/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
