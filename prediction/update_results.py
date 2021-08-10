@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.google_sheets_sdk import find_cell, findall_cells, get_cell, update_cell, format_cell
+from utils.google_sheets_sdk import find_cell, find_all_cells, get_cell, update_cell, format_cell
 
 
 METRICS_COL_ORDER_AGE = {"elastic_net": 0, "light_gbm": 1}
@@ -16,7 +16,7 @@ class UpdateResultsAge:
 
     def check_better_training(self, main_category, category, algorithm, metrics, random_state):
         self.category_row = find_cell(main_category + f" {random_state}", category).row
-        self.test_r2_column = findall_cells(main_category + f" {random_state}", "test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
+        self.test_r2_column = find_all_cells(main_category + f" {random_state}", "test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
 
         previous_test_r2 = get_cell(main_category + f" {random_state}", self.category_row, self.test_r2_column).value
         
@@ -27,7 +27,7 @@ class UpdateResultsAge:
         for metric_name in list(metrics.keys()):
             if metric_name == "test r²":
                 continue
-            metric_column = findall_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_AGE[algorithm]].col
+            metric_column = find_all_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_AGE[algorithm]].col
             update_cell(main_category + f" {random_state}", self.category_row, metric_column, np.round(metrics[metric_name], 3))
         
         update_cell(main_category + f" {random_state}", self.category_row, self.test_r2_column, np.round(metrics["test r²"], 3))
@@ -41,7 +41,7 @@ class UpdateResultsSurvival:
 
     def check_better_training(self, main_category, category, algorithm, target, metrics, training_mode, random_state):
         self.category_row = find_cell(main_category + f" {random_state}", category).row
-        self.test_c_index_column = findall_cells(main_category + f" {random_state}", "test C-index")[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
+        self.test_c_index_column = find_all_cells(main_category + f" {random_state}", "test C-index")[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
 
         previous_test_c_index = get_cell(main_category + f" {random_state}", self.category_row, self.test_c_index_column).value
         
@@ -52,7 +52,7 @@ class UpdateResultsSurvival:
         for metric_name in list(metrics.keys()):
             if metric_name == "test C-index":
                 continue
-            metric_column = findall_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
+            metric_column = find_all_cells(main_category + f" {random_state}", metric_name)[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
             update_cell(main_category + f" {random_state}", self.category_row, metric_column, np.round(metrics[metric_name], 3))
         
         update_cell(main_category + f" {random_state}", self.category_row, self.test_c_index_column, np.round(metrics["test C-index"], 3))
