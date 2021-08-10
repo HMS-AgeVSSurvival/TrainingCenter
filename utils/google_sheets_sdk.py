@@ -2,6 +2,7 @@ import os
 import time
 import numpy as np
 import gspread
+import requests
 import json
 from json import JSONDecodeError
 
@@ -21,14 +22,14 @@ def handle_gspread_error(error):
     try:
         error = json.loads(error.response._content)
     except JSONDecodeError:
-        raise error
+        raise error()
 
-    if error["error"]["code"] in [429, 101, 500]:  # Means too many Google Sheet API's calls
+    if error["error"]["code"] in [404, 429, 101, 500]:  # Means too many Google Sheet API's calls
         sleep_time = 61
         print(f"Sleep {sleep_time}")
         time.sleep(sleep_time)
     else:
-        raise error
+        raise error()
 
 
 def update_cell(main_category, row, col, value):
@@ -40,6 +41,10 @@ def update_cell(main_category, row, col, value):
             cell_updated = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)
+        except requests.exceptions.ReadTimeout:
+            pass
+
+
 
 
 def update_cells(main_category, first_row, last_row, first_col, last_col, values):
@@ -54,6 +59,8 @@ def update_cells(main_category, first_row, last_row, first_col, last_col, values
             cell_updated = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)     
+        except requests.exceptions.ReadTimeout:
+            pass
 
 
 def find_cell(main_category, name):
@@ -65,6 +72,8 @@ def find_cell(main_category, name):
             got_cell = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)
+        except requests.exceptions.ReadTimeout:
+            pass
 
     return cell
 
@@ -78,6 +87,8 @@ def find_all_cells(main_category, name):
             got_cell = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)
+        except requests.exceptions.ReadTimeout:
+            pass
 
     return cells
 
@@ -91,6 +102,8 @@ def get_cell(main_category, row, col):
             got_cell = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)
+        except requests.exceptions.ReadTimeout:
+            pass
 
     return cell
 
@@ -106,6 +119,8 @@ def get_col_values(main_category, col_name):
             got_col = True
         except gspread.exceptions.APIError as error_gspread:
             handle_gspread_error(error_gspread)
+        except requests.exceptions.ReadTimeout:
+            pass
 
     return col_values
 
@@ -120,4 +135,6 @@ def format_cell(main_category, row, col, algorithm):
             worksheet.format(f"{letter_col}{row}", {"backgroundColor": COLOR_ALGORITHM[algorithm]})
             cell_formated = True
         except gspread.exceptions.APIError as error_gspread:
-            handle_gspread_error(error_gspread)
+            handle_gspread_error(error_gspread)        
+        except requests.exceptions.ReadTimeout:
+            pass
