@@ -1,17 +1,37 @@
-function reportShape() {
+const shapeColOrderTarget = { "age": 0, "all": 1, "cvd": 2, "cancer": 3 };
+
+function reportShapeExamination() {
+    reportShapeMainCategory("examination");
+}
+
+
+function reportShapeLaboratory() {
+    reportShapeMainCategory("laboratory");
+}
+
+
+function reportShapeQuestionnaire() {
+    reportShapeMainCategory("questionnaire");
+}
+
+
+function reportShapeMainCategory(mainCategoryName) {
     let categoryColMainCategory = 1;
 
-    for (let idxMainCategories = 0; idxMainCategories < mainCategories.length; idxMainCategories++) {
-        let mainCategory = getSpreadSheet().getSheetByName(mainCategories[idxMainCategories] + " 1");
+    let mainCategory = getSpreadSheet().getSheetByName(mainCategoryName + " 1");
 
-        let lastRowMainCategory = mainCategory.getLastRow();
-        let nParticipantsColMainCategory = findCell(mainCategory, "n_participants").getColumn();
-        let nVariablesColMainCategory = findCell(mainCategory, "n_variables").getColumn();
+    let lastRowMainCategory = mainCategory.getLastRow();
 
-        let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategories[idxMainCategories]);
+    for (let targetIdx = 0; targetIdx < targets.length; targetIdx++) {
+        let target = targets[targetIdx];
 
-        let nParticipantsColSummary = findCell(summaryMainCategory, "n_participants").getColumn();
-        let nVariablesColSummary = findCell(summaryMainCategory, "n_variables").getColumn();
+        let nParticipantsColMainCategory = findSpecificCell(mainCategory, "n_participants", shapeColOrderTarget[target]).getColumn();
+        let nVariablesColMainCategory = findSpecificCell(mainCategory, "n_variables", shapeColOrderTarget[target]).getColumn();
+
+        let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategoryName);
+
+        let nParticipantsColSummary = findSpecificCell(summaryMainCategory, "n_participants", shapeColOrderTarget[target]).getColumn();
+        let nVariablesColSummary = findSpecificCell(summaryMainCategory, "n_variables", shapeColOrderTarget[target]).getColumn();
 
         for (let categoryRowMainCategory = 4; categoryRowMainCategory <= lastRowMainCategory; categoryRowMainCategory++) {
             let category = mainCategory.getRange(categoryRowMainCategory, categoryColMainCategory).getValue();
@@ -24,4 +44,4 @@ function reportShape() {
             summaryMainCategory.getRange(categoryRowSummary, nVariablesColSummary).setValue(nVariables);
         };
     };
-};
+}

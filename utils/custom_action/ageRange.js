@@ -1,17 +1,34 @@
-function reportAgeRange() {
+function reportAgeRangeExamination() {
+    reportAgeRangeMainCategory("examination");
+}
+
+
+function reportAgeRangeLaboratory() {
+    reportAgeRangeMainCategory("laboratory");
+}
+
+
+function reportAgeRangeQuestionnaire() {
+    reportAgeRangeMainCategory("questionnaire");
+}
+
+function reportAgeRangeMainCategory(mainCategoryName) {
     let categoryColMainCategory = 1;
 
-    for (let idxMainCategories = 0; idxMainCategories < mainCategories.length; idxMainCategories++) {
-        let mainCategory = getSpreadSheet().getSheetByName(mainCategories[idxMainCategories] + " 1");
+    let mainCategory = getSpreadSheet().getSheetByName(mainCategoryName + " 1");
 
-        let lastRowMainCategory = mainCategory.getLastRow();
-        let minColMainCategory = findCell(mainCategory, "min").getColumn();
-        let maxColMainCategory = findCell(mainCategory, "max").getColumn();
+    let lastRowMainCategory = mainCategory.getLastRow();
 
-        let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategories[idxMainCategories]);
+    for (let targetIdx = 0; targetIdx < targets.length; targetIdx++) {
+        let target = targets[targetIdx];
 
-        let minColSummary = findCell(summaryMainCategory, "min").getColumn();
-        let maxColSummary = findCell(summaryMainCategory, "max").getColumn();
+        let minColMainCategory = findSpecificCell(mainCategory, "min", shapeColOrderTarget[target]).getColumn();
+        let maxColMainCategory = findSpecificCell(mainCategory, "max", shapeColOrderTarget[target]).getColumn();
+
+        let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategoryName);
+
+        let minColSummary = findSpecificCell(summaryMainCategory, "min", shapeColOrderTarget[target]).getColumn();
+        let maxColSummary = findSpecificCell(summaryMainCategory, "max", shapeColOrderTarget[target]).getColumn();
 
         for (let categoryRowMainCategory = 4; categoryRowMainCategory <= lastRowMainCategory; categoryRowMainCategory++) {
             let category = mainCategory.getRange(categoryRowMainCategory, categoryColMainCategory).getValue();

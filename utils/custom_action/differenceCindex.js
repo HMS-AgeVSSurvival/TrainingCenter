@@ -28,6 +28,9 @@ function reportCindexesMainCategory(mainCategoryName) {
     let summaryMainCategory = getSpreadSheet().getSheetByName("summary " + mainCategoryName);
 
     for (let idxTarget = 0; idxTarget < targets.length; idxTarget++) {
+        if (targets[idxTarget] == "age") {
+            continue
+        };
         let target = targets[idxTarget];
         let testColFullTrainingElasticNet = findSpecificCell(mainCategory1, "test C-index", metricsColOrderSurvival["full_training"][target]["elastic_net"]).getColumn();
         let testColFullTrainingLightGBM = findSpecificCell(mainCategory1, "test C-index", metricsColOrderSurvival["full_training"][target]["light_gbm"]).getColumn();
