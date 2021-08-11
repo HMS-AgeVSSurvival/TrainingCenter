@@ -36,7 +36,6 @@ function reportLogHazardRatioMainCategory(mainCategoryName) {
             let pValue2 = mainCategory2.getRange(categoryRowMainCategory, pValueCol).getValue();
 
             if (pValue1 == "" && pValue1 != "0" && pValue2 == "" && pValue2 != "0") {
-                console.log(11);
                 continue;
             } else if (pValue2 == "" || (pValue1 != "" && pValue1 < pValue2)) {
                 pValue = pValue1;
@@ -47,7 +46,6 @@ function reportLogHazardRatioMainCategory(mainCategoryName) {
             };
 
             let category = mainCategory1.getRange(categoryRowMainCategory, categoryColMainCategory).getValue();
-            console.log(category);
             let categoryRowSummary = findCell(summaryMainCategory, category).getRow();
 
             let rangeSummaryLogHazardRatio = summaryMainCategory.getRange(categoryRowSummary, summaryLogHazardRatioCol);
