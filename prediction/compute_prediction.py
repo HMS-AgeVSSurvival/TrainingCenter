@@ -218,11 +218,11 @@ def prediction_survival(main_category, category, training_mode, target, algorith
     model = ModelSurvival(algorithm, random_state)
 
     if target == "all":
-        data.drop(index=data.index[data["survival_type_alive"].isna()], inplace=True)
+        data.drop(index=data.index[data[DEATH_COLUMN].isna()], inplace=True)
     elif target == "cvd":
-        data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cvd"] == 1)]
+        data = data[(data[DEATH_COLUMN] == 0) | (data["survival_type_cvd"] == 1)]
     elif target == "cancer":
-        data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
+        data = data[(data[DEATH_COLUMN] == 0) | (data["survival_type_cancer"] == 1)]
 
     if training_mode == "basic_training":
         data = data[BASIC_TRAINING_COLUMNS]

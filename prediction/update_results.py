@@ -21,7 +21,10 @@ class UpdateResultsAge:
         self.test_r2_column = find_all_cells(main_category + f" {random_state}", "test r²")[METRICS_COL_ORDER_AGE[algorithm]].col
 
         previous_test_r2 = get_cell(main_category + f" {random_state}", self.category_row, self.test_r2_column).value
-        
+                
+        print("Previous test score:", previous_test_r2)
+        print("New test score:", metrics["test r²"])
+
         return previous_test_r2 is None or float(previous_test_r2) <= metrics["test r²"]
 
     def update_results(self, main_category, algorithm, metrics, random_state, n_inner_search):
@@ -48,9 +51,12 @@ class UpdateResultsSurvival:
     def check_better_training(self, main_category, category, algorithm, target, metrics, training_mode, random_state):
         self.category_row = find_cell(main_category + f" {random_state}", category).row
         self.test_c_index_column = find_all_cells(main_category + f" {random_state}", "test C-index")[METRICS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
-
-        previous_test_c_index = get_cell(main_category + f" {random_state}", self.category_row, self.test_c_index_column).value
         
+        previous_test_c_index = get_cell(main_category + f" {random_state}", self.category_row, self.test_c_index_column).value
+
+        print("Previous test score:", previous_test_c_index)
+        print("New test score:", metrics["test C-index"])
+
         return previous_test_c_index is None or float(previous_test_c_index) <= metrics["test C-index"]
 
     def update_results(self, main_category, algorithm, target, metrics, training_mode, random_state, n_inner_search):

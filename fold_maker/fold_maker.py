@@ -2,6 +2,8 @@ import sys
 import argparse
 import pandas as pd
 
+from prediction import DEATH_COLUMN
+
 
 def fold_maker_cli(argvs=sys.argv[1:]):
     parser = argparse.ArgumentParser("Split the samples into folds according to the survival type")
@@ -38,7 +40,7 @@ def fold_maker(main_category, category, n_folds):
     
     list_every_folds = []
     
-    list_every_folds.append(get_folds(data.index[data["survival_type_alive"].isna()], n_folds))
+    list_every_folds.append(get_folds(data.index[data[DEATH_COLUMN].isna()], n_folds))
 
     for survival_type in ["alive", "cvd", "cancer", "other"]:
         list_every_folds.append(get_folds(data.index[data[f"survival_type_{survival_type}"] == 1], n_folds))

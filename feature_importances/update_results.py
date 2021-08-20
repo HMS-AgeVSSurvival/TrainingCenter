@@ -22,6 +22,9 @@ class UpdateResultsAge:
 
         previous_train_r2 = get_cell(main_category + f" {random_state}", self.category_row, self.train_r2_column).value
         
+        print("Previous train score:", previous_train_r2)
+        print("New train score:", metrics["train r²"])
+
         return previous_train_r2 is None or float(previous_train_r2) <= metrics["train r²"]
 
     def update_results(self, main_category, algorithm, metrics, random_state, n_inner_search):
@@ -49,9 +52,12 @@ class UpdateResultsSurvival:
         self.category_row = find_cell(main_category + f" {random_state}", category).row
         self.train_c_index_column = find_all_cells(main_category + f" {random_state}", "train C-index")[METRICS_COL_ORDER_SURVIVAL[target][algorithm]].col
 
-        previous_train_r2 = get_cell(main_category + f" {random_state}", self.category_row, self.train_c_index_column).value
+        previous_train_c_index = get_cell(main_category + f" {random_state}", self.category_row, self.train_c_index_column).value
         
-        return previous_train_r2 is None or float(previous_train_r2) <= metrics["train C-index"]
+        print("Previous train score:", previous_train_c_index)
+        print("New train score:", metrics["train C-index"])
+
+        return previous_train_c_index is None or float(previous_train_c_index) <= metrics["train C-index"]
 
     def update_results(self, main_category, algorithm, target, metrics, random_state, n_inner_search):
         print(metrics)

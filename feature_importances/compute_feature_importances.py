@@ -144,11 +144,11 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
     model = ModelSurvival(algorithm, random_state)
 
     if target == "all":
-        data.drop(index=data.index[data["survival_type_alive"].isna()], inplace=True)
+        data.drop(index=data.index[data[DEATH_COLUMN].isna()], inplace=True)
     elif target == "cvd":
-        data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cvd"] == 1)]
+        data = data[(data[DEATH_COLUMN] == 0) | (data["survival_type_cvd"] == 1)]
     elif target == "cancer":
-        data = data[(data["survival_type_alive"] == 1) | (data["survival_type_cancer"] == 1)]
+        data = data[(data[DEATH_COLUMN] == 0) | (data["survival_type_cancer"] == 1)]
 
     if (not data.empty) and (not any_fold_all_cencored(data)):
         train_set = data.sample(frac=1, random_state=0)
