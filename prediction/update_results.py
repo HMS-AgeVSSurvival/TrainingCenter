@@ -1,11 +1,13 @@
 import numpy as np
 
-from utils.google_sheets_sdk import find_cell, find_all_cells, get_cell, update_cell, format_cell
+from utils.google_sheets_sdk import find_cell, find_all_cells, get_cell, update_cell
 
 
 METRICS_COL_ORDER_AGE = {"elastic_net": 0, "light_gbm": 1}
+N_HYPERPARAMETERS_COL_ORDER_AGE = {"elastic_net": 0, "light_gbm": 1}
+
 METRICS_COL_ORDER_SURVIVAL = {"full_training": {"all": {"elastic_net": 0, "light_gbm": 1}, "cvd": {"elastic_net": 2, "light_gbm": 3}, "cancer": {"elastic_net": 4, "light_gbm": 5}}, "basic_training": {"all": {"elastic_net": 6, "light_gbm": 7}, "cvd": {"elastic_net": 8, "light_gbm": 9}, "cancer": {"elastic_net": 10, "light_gbm": 11}}}
-BEST_METRICS_COL_ORDER_SURVIVAL = {"all": 0, "cvd": 1, "cancer": 2}
+N_HYPERPARAMETERS_COL_ORDER_SURVIVAL = {"full_training": {"all": {"elastic_net": 2, "light_gbm": 3}, "cvd": {"elastic_net": 4, "light_gbm": 5}, "cancer": {"elastic_net": 6, "light_gbm": 6}}, "basic_training": {"all": {"elastic_net": 8, "light_gbm": 9}, "cvd": {"elastic_net": 10, "light_gbm": 11}, "cancer": {"elastic_net": 12, "light_gbm": 13}}}
 
 
 class UpdateResultsAge:
@@ -22,8 +24,12 @@ class UpdateResultsAge:
         
         return previous_test_r2 is None or float(previous_test_r2) <= metrics["test r²"]
 
-    def update_results(self, main_category, algorithm, metrics, random_state):
-        print(metrics)
+    def update_results(self, main_category, algorithm, metrics, random_state, n_inner_search):
+        print(metrics, n_inner_search)
+
+        n_inner_search_column = find_all_cells(main_category + f" {random_state}", "N hyperparameters")[N_HYPERPARAMETERS_COL_ORDER_AGE[algorithm]].col
+        update_cell(main_category + f" {random_state}", self.category_row, n_inner_search_column, n_inner_search)
+
         for metric_name in list(metrics.keys()):
             if metric_name == "test r²":
                 continue
@@ -47,8 +53,12 @@ class UpdateResultsSurvival:
         
         return previous_test_c_index is None or float(previous_test_c_index) <= metrics["test C-index"]
 
-    def update_results(self, main_category, algorithm, target, metrics, training_mode, random_state):
+    def update_results(self, main_category, algorithm, target, metrics, training_mode, random_state, n_inner_search):
         print(metrics)
+
+        n_inner_search_column = find_all_cells(main_category + f" {random_state}", "N hyperparameters")[N_HYPERPARAMETERS_COL_ORDER_SURVIVAL[training_mode][target][algorithm]].col
+        update_cell(main_category + f" {random_state}", self.category_row, n_inner_search_column, n_inner_search)
+
         for metric_name in list(metrics.keys()):
             if metric_name == "test C-index":
                 continue

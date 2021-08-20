@@ -117,7 +117,7 @@ def feature_importances_age(main_category, category, algorithm, random_state, n_
 
         feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
 
-        update_results_age.update_results(main_category, algorithm, metrics, random_state)
+        update_results_age.update_results(main_category, algorithm, metrics, random_state, n_inner_search)
 
 
 def feature_importances_survival(main_category, category, target, algorithm, random_state, n_inner_search):
@@ -180,4 +180,4 @@ def feature_importances_survival(main_category, category, target, algorithm, ran
             feature_importances_to_dump[index_feature_importances] = feature_importances
             feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}_train.feather")
 
-        update_results_survival.update_results(main_category, algorithm, target, metrics, random_state)
+        update_results_survival.update_results(main_category, algorithm, target, metrics, random_state, n_inner_search)

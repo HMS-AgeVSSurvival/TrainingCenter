@@ -186,7 +186,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         predictions_to_dump.reset_index().to_feather(f"dumps/prediction/age/{main_category}/{category}/{algorithm}_{random_state}.feather")
         feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}.feather")
 
-        update_results_age.update_results(main_category, algorithm, metrics, random_state)
+        update_results_age.update_results(main_category, algorithm, metrics, random_state, n_inner_search)
 
 
 def prediction_survival(main_category, category, training_mode, target, algorithm, random_state, n_inner_search):
@@ -291,4 +291,4 @@ def prediction_survival(main_category, category, training_mode, target, algorith
             predictions_to_dump.reset_index().to_feather(f"dumps/prediction/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
             feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
 
-        update_results_survival.update_results(main_category, algorithm, target, metrics, training_mode, random_state)
+        update_results_survival.update_results(main_category, algorithm, target, metrics, training_mode, random_state, n_inner_search)

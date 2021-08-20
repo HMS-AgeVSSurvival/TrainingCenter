@@ -4,7 +4,10 @@ from utils.google_sheets_sdk import find_cell, find_all_cells, get_cell, update_
 
 
 METRICS_COL_ORDER_AGE = {"elastic_net": 2, "light_gbm": 3}
+N_HYPERPARAMETERS_COL_ORDER_AGE = {"elastic_net": 14, "light_gbm": 15}
+
 METRICS_COL_ORDER_SURVIVAL = {"all": {"elastic_net": 12, "light_gbm": 13}, "cvd": {"elastic_net": 14, "light_gbm": 15}, "cancer": {"elastic_net": 16, "light_gbm": 17}}
+N_HYPERPARAMETERS_COL_ORDER_SURVIVAL = {"all": {"elastic_net": 16, "light_gbm": 17}, "cvd": {"elastic_net": 18, "light_gbm": 19}, "cancer": {"elastic_net": 20, "light_gbm": 21}}
 
 
 class UpdateResultsAge:
@@ -21,8 +24,12 @@ class UpdateResultsAge:
         
         return previous_train_r2 is None or float(previous_train_r2) <= metrics["train r²"]
 
-    def update_results(self, main_category, algorithm, metrics, random_state):
+    def update_results(self, main_category, algorithm, metrics, random_state, n_inner_search):
         print(metrics)
+
+        metric_column = find_all_cells(main_category + f" {random_state}", "N hyperparameters")[N_HYPERPARAMETERS_COL_ORDER_AGE[algorithm]].col
+        update_cell(main_category + f" {random_state}", self.category_row, metric_column, n_inner_search)
+
         for metric_name in list(metrics.keys()):
             if metric_name == "train r²":
                 continue
@@ -46,8 +53,12 @@ class UpdateResultsSurvival:
         
         return previous_train_r2 is None or float(previous_train_r2) <= metrics["train C-index"]
 
-    def update_results(self, main_category, algorithm, target, metrics, random_state):
+    def update_results(self, main_category, algorithm, target, metrics, random_state, n_inner_search):
         print(metrics)
+
+        metric_column = find_all_cells(main_category + f" {random_state}", "N hyperparameters")[N_HYPERPARAMETERS_COL_ORDER_SURVIVAL[target][algorithm]].col
+        update_cell(main_category + f" {random_state}", self.category_row, metric_column, n_inner_search)
+
         for metric_name in list(metrics.keys()):
             if metric_name == "train C-index":
                 continue
