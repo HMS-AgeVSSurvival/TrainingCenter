@@ -1,5 +1,5 @@
 const mainCategories = ["examination", "laboratory", "questionnaire"];
-const targets = ["all", "cvd", "cancer"];
+const targets = ["age", "all", "cvd", "cancer"];
 const algorithms = ["elastic_net", "light_gbm"];
 
 

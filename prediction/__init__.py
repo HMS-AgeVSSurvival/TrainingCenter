@@ -44,7 +44,7 @@ GENDER_COLUMN = 'RIAGENDR; Gender of the sample person'
 DEATH_COLUMN = "mortstat"
 FOLLOW_UP_TIME_COLUMN = "follow_up_time"
 ETHNICITIES = ['RIDRETH1_Non-Hispanic Black; Recode of reported race and ethnicity information.', 'RIDRETH1_Non-Hispanic White; Recode of reported race and ethnicity information.', 'RIDRETH1_Other Hispanic; Recode of reported race and ethnicity information.', 'RIDRETH1_Other Race - Including Multi-Racial; Recode of reported race and ethnicity information.']
-SURVIVAL_TYPES = ['survival_type_alive', 'survival_type_cancer', 'survival_type_cvd', 'survival_type_other']
+SURVIVAL_TYPES = ['survival_type_cancer', 'survival_type_cvd', 'survival_type_other']
 
 BASIC_TRAINING_COLUMNS = [AGE_COLUMN, GENDER_COLUMN, DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, 'fold'] + ETHNICITIES + SURVIVAL_TYPES
 

@@ -37,7 +37,7 @@ function reportLogHazardRatioMainCategory(mainCategoryName) {
 
             if (pValue1 == "" && pValue1 != "0" && pValue2 == "" && pValue2 != "0") {
                 continue;
-            } else if (pValue1 < pValue2) {
+            } else if (pValue2 == "" || (pValue1 != "" && pValue1 < pValue2)) {
                 pValue = pValue1;
                 logHazardRatio = logHazardRatio1;
             } else {
