@@ -61,8 +61,9 @@ def fold_maker(main_category, category, n_folds):
     list_every_folds = []
 
     list_every_folds.append(get_folds(data.index[data[DEATH_COLUMN].isna()], n_folds))
+    list_every_folds.append(get_folds(data.index[data[DEATH_COLUMN] == 0], n_folds))
 
-    for survival_type in ["alive", "cvd", "cancer", "other"]:
+    for survival_type in ["cvd", "cancer", "other"]:
         list_every_folds.append(
             get_folds(data.index[data[f"survival_type_{survival_type}"] == 1], n_folds)
         )
