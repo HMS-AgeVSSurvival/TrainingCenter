@@ -12,27 +12,40 @@ class ModelAge:
         self.random_state = random_state
 
         if self.algorithm == "elastic_net":  # Randomness comes from feature selection
-            self.net = ElasticNet(selection="random", random_state=self.random_state, max_iter=2000)
+            self.net = ElasticNet(
+                selection="random", random_state=self.random_state, max_iter=2000
+            )
         elif self.algorithm == "light_gbm":
-            self.net = LGBMRegressor(importance_type="gain", random_state=self.random_state)
+            self.net = LGBMRegressor(
+                importance_type="gain", random_state=self.random_state
+            )
 
     def set(self, **hyperparameters):
         self.net.set_params(**hyperparameters)
 
     def fit(self, samples):
-        self.net.fit(samples[samples.columns[samples.columns != AGE_COLUMN]].values, samples[AGE_COLUMN].values)
+        self.net.fit(
+            samples[samples.columns[samples.columns != AGE_COLUMN]].values,
+            samples[AGE_COLUMN].values,
+        )
 
     def predict(self, samples):
-        return pd.Series(self.net.predict(samples[samples.columns[samples.columns != AGE_COLUMN]]), index=samples.index, name="prediction")
-    
+        return pd.Series(
+            self.net.predict(samples[samples.columns[samples.columns != AGE_COLUMN]]),
+            index=samples.index,
+            name="prediction",
+        )
+
     def get_feature_importances(self, train_set_columns):
         if self.algorithm == "elastic_net":
             list_feature_importances = self.net.coef_
         elif self.algorithm == "light_gbm":
             list_feature_importances = self.net.feature_importances_
 
-
-        feature_importances = pd.Series(list_feature_importances, index=train_set_columns[train_set_columns != AGE_COLUMN])
+        feature_importances = pd.Series(
+            list_feature_importances,
+            index=train_set_columns[train_set_columns != AGE_COLUMN],
+        )
         feature_importances = feature_importances / feature_importances.abs().sum()
         return feature_importances
 
@@ -46,10 +59,12 @@ class ModelSurvival:
         self.random_state = random_state
 
         if self.algorithm == "elastic_net":
-            self.net = CoxnetSurvivalAnalysis(n_alphas=1)  #, max_iter=2000)
+            self.net = CoxnetSurvivalAnalysis(n_alphas=1)  # , max_iter=2000)
         elif self.algorithm == "light_gbm":
-            self.net = GradientBoostingSurvivalAnalysis(random_state=self.random_state, max_features="sqrt")
-        
+            self.net = GradientBoostingSurvivalAnalysis(
+                random_state=self.random_state, max_features="sqrt"
+            )
+
     def set(self, **hyperparameters):
         if self.algorithm == "elastic_net":
             self.net.alphas = [hyperparameters["alpha"]]
@@ -60,22 +75,46 @@ class ModelSurvival:
             self.net.n_estimators = hyperparameters["n_estimators"]
             self.net.min_samples_leaf = hyperparameters["min_samples_leaf"]
             self.net.subsample = hyperparameters["subsample"]
-            
-    def fit(self, samples):   
+
+    def fit(self, samples):
         from sksurv.util import Surv
 
         labels = Surv.from_arrays(samples[DEATH_COLUMN], samples[FOLLOW_UP_TIME_COLUMN])
-        self.net.fit(samples[samples.columns[~samples.columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])]], labels)
+        self.net.fit(
+            samples[
+                samples.columns[
+                    ~samples.columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])
+                ]
+            ],
+            labels,
+        )
 
     def predict(self, samples):
-        return pd.Series(self.net.predict(samples[samples.columns[~samples.columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])]]), index=samples.index, name="prediction")
-    
+        return pd.Series(
+            self.net.predict(
+                samples[
+                    samples.columns[
+                        ~samples.columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])
+                    ]
+                ]
+            ),
+            index=samples.index,
+            name="prediction",
+        )
+
     def get_feature_importances(self, train_set_columns):
         if self.algorithm == "elastic_net":
             list_feature_importances = self.net.coef_.reshape((-1))
         elif self.algorithm == "light_gbm":
             list_feature_importances = self.net.feature_importances_
-    
-        feature_importances = pd.Series(list_feature_importances, index=train_set_columns[~train_set_columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])])
-        feature_importances = feature_importances / (feature_importances.abs().sum() + 1e-16)
+
+        feature_importances = pd.Series(
+            list_feature_importances,
+            index=train_set_columns[
+                ~train_set_columns.isin([DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN])
+            ],
+        )
+        feature_importances = feature_importances / (
+            feature_importances.abs().sum() + 1e-16
+        )
         return feature_importances

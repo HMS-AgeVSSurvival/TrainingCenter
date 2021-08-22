@@ -12,9 +12,11 @@ from utils.number_to_letter import get_letter
 
 def get_worksheet(main_category):
     service_account_id = np.random.randint(1, 6)
-    gc = gspread.service_account(filename=f"credentials/credentials_{service_account_id}.json")
+    gc = gspread.service_account(
+        filename=f"credentials/credentials_{service_account_id}.json"
+    )
     google_sheet = gc.open_by_key(os.environ.get("GOOGLE_RESULTS_SHEET_ID"))
-    
+
     return google_sheet.worksheet(main_category)
 
 
@@ -24,7 +26,12 @@ def handle_gspread_error(error):
     except JSONDecodeError:
         raise error
 
-    if error["error"]["code"] in [404, 429, 101, 500]:  # Means too many Google Sheet API's calls
+    if error["error"]["code"] in [
+        404,
+        429,
+        101,
+        500,
+    ]:  # Means too many Google Sheet API's calls
         sleep_time = 61
         print(f"Sleep {sleep_time}")
         time.sleep(sleep_time)
@@ -45,8 +52,6 @@ def update_cell(main_category, row, col, value):
             pass
 
 
-
-
 def update_cells(main_category, first_row, last_row, first_col, last_col, values):
     first_col_letter = get_letter(first_col)
     last_col_letter = get_letter(last_col)
@@ -55,10 +60,13 @@ def update_cells(main_category, first_row, last_row, first_col, last_col, values
     while not cell_updated:
         try:
             worksheet = get_worksheet(main_category)
-            worksheet.update(f"{first_col_letter}{first_row}:{last_col_letter}{last_row}", list(map(list, values.astype(str))))
+            worksheet.update(
+                f"{first_col_letter}{first_row}:{last_col_letter}{last_row}",
+                list(map(list, values.astype(str))),
+            )
             cell_updated = True
         except gspread.exceptions.APIError as error_gspread:
-            handle_gspread_error(error_gspread)     
+            handle_gspread_error(error_gspread)
         except requests.exceptions.ReadTimeout:
             pass
 
@@ -132,9 +140,11 @@ def format_cell(main_category, row, col, algorithm):
     while not cell_formated:
         try:
             worksheet = get_worksheet(main_category)
-            worksheet.format(f"{letter_col}{row}", {"backgroundColor": COLOR_ALGORITHM[algorithm]})
+            worksheet.format(
+                f"{letter_col}{row}", {"backgroundColor": COLOR_ALGORITHM[algorithm]}
+            )
             cell_formated = True
         except gspread.exceptions.APIError as error_gspread:
-            handle_gspread_error(error_gspread)        
+            handle_gspread_error(error_gspread)
         except requests.exceptions.ReadTimeout:
             pass

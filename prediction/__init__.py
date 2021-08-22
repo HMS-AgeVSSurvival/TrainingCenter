@@ -26,27 +26,38 @@ HYPERPARAMETERS_AGE = {
     },
 }
 HYPERPARAMETERS_SURVIVAL = {
-        "elastic_net": {
-            "alpha": hp.loguniform("alpha", np.log(1e-3), np.log(5e-1)),
-            "l1_ratio": hp.uniform("l1_ratio", low=0, high=1),
-        },
-        "light_gbm": {
-            "max_leaf_nodes": hp.uniform("max_leaf_nodes", low=20, high=1000),
-            "learning_rate": hp.loguniform("learning_rate", low=np.log(1e-4), high=np.log(5e-1)),
-            "n_estimators": hp.uniform("n_estimators", low=80, high=250),
-            "min_samples_leaf": hp.uniform("min_samples_leaf", low=1, high=30),
-            "subsample": hp.uniform("subsample", low=0.1, high=1),
-        },
+    "elastic_net": {
+        "alpha": hp.loguniform("alpha", np.log(1e-3), np.log(5e-1)),
+        "l1_ratio": hp.uniform("l1_ratio", low=0, high=1),
+    },
+    "light_gbm": {
+        "max_leaf_nodes": hp.uniform("max_leaf_nodes", low=20, high=1000),
+        "learning_rate": hp.loguniform(
+            "learning_rate", low=np.log(1e-4), high=np.log(5e-1)
+        ),
+        "n_estimators": hp.uniform("n_estimators", low=80, high=250),
+        "min_samples_leaf": hp.uniform("min_samples_leaf", low=1, high=30),
+        "subsample": hp.uniform("subsample", low=0.1, high=1),
+    },
 }
 
 AGE_COLUMN = "RIDAGEEX_extended; Best age in months at date of examination for individuals under 85 years of age at screening."
-GENDER_COLUMN = 'RIAGENDR; Gender of the sample person'
+GENDER_COLUMN = "RIAGENDR; Gender of the sample person"
 DEATH_COLUMN = "mortstat"
 FOLLOW_UP_TIME_COLUMN = "follow_up_time"
-ETHNICITIES = ['RIDRETH1_Non-Hispanic Black; Recode of reported race and ethnicity information.', 'RIDRETH1_Non-Hispanic White; Recode of reported race and ethnicity information.', 'RIDRETH1_Other Hispanic; Recode of reported race and ethnicity information.', 'RIDRETH1_Other Race - Including Multi-Racial; Recode of reported race and ethnicity information.']
-SURVIVAL_TYPES = ['survival_type_cancer', 'survival_type_cvd', 'survival_type_other']
+ETHNICITIES = [
+    "RIDRETH1_Non-Hispanic Black; Recode of reported race and ethnicity information.",
+    "RIDRETH1_Non-Hispanic White; Recode of reported race and ethnicity information.",
+    "RIDRETH1_Other Hispanic; Recode of reported race and ethnicity information.",
+    "RIDRETH1_Other Race - Including Multi-Racial; Recode of reported race and ethnicity information.",
+]
+SURVIVAL_TYPES = ["survival_type_cancer", "survival_type_cvd", "survival_type_other"]
 
-BASIC_TRAINING_COLUMNS = [AGE_COLUMN, GENDER_COLUMN, DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, 'fold'] + ETHNICITIES + SURVIVAL_TYPES
+BASIC_TRAINING_COLUMNS = (
+    [AGE_COLUMN, GENDER_COLUMN, DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, "fold"]
+    + ETHNICITIES
+    + SURVIVAL_TYPES
+)
 
 
 COLUMNS_TO_DROP_FOR_SCALE = [
@@ -56,4 +67,7 @@ COLUMNS_TO_DROP_FOR_SCALE = [
 ] + SURVIVAL_TYPES
 COLUMNS_TO_ADD_AFTER_SCALE = [DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN]
 
-COLOR_ALGORITHM = {"elastic_net":{"red": 0.5, "green": 0.5, "blue": 1.0}, "light_gbm":{"red": 0.5, "green": 1.0, "blue": 0.5}}
+COLOR_ALGORITHM = {
+    "elastic_net": {"red": 0.5, "green": 0.5, "blue": 1.0},
+    "light_gbm": {"red": 0.5, "green": 1.0, "blue": 0.5},
+}

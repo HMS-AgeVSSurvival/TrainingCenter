@@ -18,7 +18,7 @@ class TestFolds(unittest.TestCase):
         self.assertTrue(all(returned_indexes.isin(indexes)))
         self.assertTrue(all(indexes.isin(returned_indexes)))
 
-        # Test if returned folds are all present 
+        # Test if returned folds are all present
         n_folds = np.random.randint(1, 100)
         returned_folds = get_folds(indexes, n_folds).drop_duplicates()
         self.assertTrue(all(returned_folds.isin(range(n_folds))))
@@ -26,6 +26,11 @@ class TestFolds(unittest.TestCase):
 
         # Test if returned folds are equally spread
         n_folds = np.random.randint(1, 100)
-        number_per_fold = list(map(lambda group: group[1].shape[0], get_folds(indexes, n_folds).to_frame().groupby(by=["fold"])))
+        number_per_fold = list(
+            map(
+                lambda group: group[1].shape[0],
+                get_folds(indexes, n_folds).to_frame().groupby(by=["fold"]),
+            )
+        )
 
         self.assertTrue(max(number_per_fold) - min(number_per_fold) <= 1)
