@@ -2,22 +2,43 @@
 
 [![Super linter](https://github.com/HMS-Internship/TrainingCenter/actions/workflows/linter.yml/badge.svg)](https://github.com/TrainingCenter/Website/actions/workflows/linter.yml)
 
-Trains machine learning algorithms to predict the age and the risk of dying for participants of NHANES dataset
+This repository is part of an entire project to study age prediction and survival prediction from NHANES dataset. The code of this project is split into 3 repositories:
+- 📦[NHANES_preprocessing](https://github.com/HMS-Internship/NHANES_preprocessing) to scrape the NHANES website and preprocess the data.
+- 📦[TrainingCenter](https://github.com/HMS-Internship/TrainingCenter) to train the algorithms from the dataset created in the previous repository.
+- 📦[CorrelationCenter](https://github.com/HMS-Internship/CorrelationCenter) to study the outputs of the models trained in the previous repository.
 
 Feel free to start a discussion to ask anything [here](https://github.com/HMS-Internship/TrainingCenter/discussions).
 
 
-To setup the virtual environment:
+## Installation
+To setup your virtual environment:
 ```Bash
 pip install pip==20.0.2
 pip install -e .
 ```
 
-## Pipelines
-There are three pipelines available. Before launching them, you need to set the folds properly by executing the following:
+## Structure to have before launching the jobs
+Before launching the jobs, you need to get the datasets and to set the folds properly by executing the following:
 ```Bash
 make_folds --main_category MAIN_CATEGORY --category CATEGORY --number_folds NUMBER_FOLDS
 ```
+For this command line to work, you need to have this folder structure:
+```
+┣ 📦NHANES_preprocessing 
+┃  ┗ 📂merge
+┃    ┗ 📂data
+┃       ┣ 📂examination
+┃       ┃ ┗ 📜[category].feather
+┃       ┣ 📂laboratory
+┃       ┃ ┗ 📜[category].feather
+┃       ┗ 📂questionnaire
+┃         ┗ 📜[category].feather
+┣ 📦TrainingCenter
+   ┗ 📂[...]
+```
+
+## Pipelines
+There are three pipelines available.
 
 #### Predictions
 To predict the biological age or the risk of dying, you can use the command line made for that purpose:
