@@ -14,7 +14,11 @@ pip install -e .
 ```
 
 ## Pipelines
-There are three pipelines available.
+There are three pipelines available. Before launching them, you need to set the folds properly by executing the following:
+```Bash
+make_folds --main_category MAIN_CATEGORY --category CATEGORY --number_folds NUMBER_FOLDS
+```
+
 #### Predictions
 To predict the biological age or the risk of dying, you can use the command line made for that purpose:
 ```Bash
@@ -35,6 +39,8 @@ feature_importances --main_category MAIN_CATEGORY --category CATEGORY --target T
 
 ## Results
 All the results are available in this [spread sheet](https://docs.google.com/spreadsheets/d/1IZDQmitlE5fU_5wbu2T8jF2_4i7I7Q_VTTjv6buVFwc/edit#gid=750005196). The results are automatically updated to the spread sheet when the computations are done.
+
+Executing the file _./shape_age_range/export_information.py_ will add the shapes and the age ranges to the [spread sheet](https://docs.google.com/spreadsheets/d/1IZDQmitlE5fU_5wbu2T8jF2_4i7I7Q_VTTjv6buVFwc/edit#gid=750005196) for each category and each target.
 
 ## Launching jobs
 The folder [__fit_running__](./fit_running/) gathers all the scripts for you to launch jobs on a cluster of computers using Slurm without you having to tell how much memory or time limit you need.
