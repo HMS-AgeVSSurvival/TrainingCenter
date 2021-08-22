@@ -4,9 +4,16 @@ from hyperopt import tpe, fmin, rand, Trials, STATUS_OK
 
 
 def cast_hyperparameters(hyperparameters):
-    for hyperparameters_to_cast in ["num_leaves", "n_estimators", "min_child_samples", "subsample_freq"]:
+    for hyperparameters_to_cast in [
+        "num_leaves",
+        "n_estimators",
+        "min_child_samples",
+        "subsample_freq",
+    ]:
         if hyperparameters_to_cast in hyperparameters.keys():
-            hyperparameters[hyperparameters_to_cast] = int(hyperparameters[hyperparameters_to_cast])
+            hyperparameters[hyperparameters_to_cast] = int(
+                hyperparameters[hyperparameters_to_cast]
+            )
 
 
 def inner_cross_validation_age(data, algorithm, random_state, n_inner_search):
@@ -33,12 +40,12 @@ def inner_cross_validation_age(data, algorithm, random_state, n_inner_search):
 
             scaled_train_set, age_mean, age_std = scale_age(train_set)
             scaled_val_set, _, _ = scale_age(val_set)
-            
+
             model.fit(scaled_train_set)
-            
+
             train_prediction = model.predict(scaled_train_set) * age_std + age_mean
             val_prediction = model.predict(scaled_val_set) * age_std + age_mean
-            
+
             list_train_r2.append(
                 r2_score(
                     train_set.loc[train_prediction.index, AGE_COLUMN], train_prediction
@@ -54,13 +61,15 @@ def inner_cross_validation_age(data, algorithm, random_state, n_inner_search):
             list_val_prediction.append(val_prediction)
 
         every_val_prediction = pd.concat(list_val_prediction)
-        val_r2 = r2_score(data.loc[every_val_prediction.index, AGE_COLUMN], every_val_prediction)
+        val_r2 = r2_score(
+            data.loc[every_val_prediction.index, AGE_COLUMN], every_val_prediction
+        )
 
         return {
             "status": STATUS_OK,
             "loss": -val_r2,
             "train_r2_std": pd.Series(list_train_r2).std(),
-            "train_rmse_std": pd.Series(list_train_rmse).std()
+            "train_rmse_std": pd.Series(list_train_rmse).std(),
         }
 
     trials = Trials()
@@ -75,7 +84,11 @@ def inner_cross_validation_age(data, algorithm, random_state, n_inner_search):
     )
 
     cast_hyperparameters(best_hyperparameters)
-    return best_hyperparameters, trials._dynamic_trials[0]["result"]["train_r2_std"], trials._dynamic_trials[0]["result"]["train_rmse_std"]
+    return (
+        best_hyperparameters,
+        trials._dynamic_trials[0]["result"]["train_r2_std"],
+        trials._dynamic_trials[0]["result"]["train_rmse_std"],
+    )
 
 
 def inner_cross_validation_survival(data, algorithm, random_state, n_inner_search):
@@ -91,7 +104,7 @@ def inner_cross_validation_survival(data, algorithm, random_state, n_inner_searc
         cast_hyperparameters(hyperparameters)
         print(hyperparameters)
         model.set(**hyperparameters)
-        
+
         try:
             list_train_c_index = []
             list_val_prediction = []
@@ -108,13 +121,23 @@ def inner_cross_validation_survival(data, algorithm, random_state, n_inner_searc
                 val_prediction = model.predict(scaled_val_set)
 
                 list_train_c_index.append(
-                    concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
+                    concordance_index_censored(
+                        train_set.loc[train_prediction.index, DEATH_COLUMN].astype(
+                            bool
+                        ),
+                        train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN],
+                        train_prediction,
+                    )[0]
                 )
                 list_val_prediction.append(val_prediction)
 
             every_val_prediction = pd.concat(list_val_prediction)
-            val_c_index = concordance_index_censored(data.loc[every_val_prediction.index, DEATH_COLUMN].astype(bool), data.loc[every_val_prediction.index, FOLLOW_UP_TIME_COLUMN], every_val_prediction)[0]
-        
+            val_c_index = concordance_index_censored(
+                data.loc[every_val_prediction.index, DEATH_COLUMN].astype(bool),
+                data.loc[every_val_prediction.index, FOLLOW_UP_TIME_COLUMN],
+                every_val_prediction,
+            )[0]
+
         except ArithmeticError:
             val_c_index = 0
             list_train_c_index = [0, 0]
@@ -137,4 +160,7 @@ def inner_cross_validation_survival(data, algorithm, random_state, n_inner_searc
     )
 
     cast_hyperparameters(best_hyperparameters)
-    return best_hyperparameters, trials._dynamic_trials[0]["result"]["train_c_index_std"]
+    return (
+        best_hyperparameters,
+        trials._dynamic_trials[0]["result"]["train_c_index_std"],
+    )

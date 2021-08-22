@@ -55,7 +55,7 @@ def argument_parser(argvs, training_mode):
             args.category,
             args.algorithm,
             args.random_state,
-            args.n_inner_search
+            args.n_inner_search,
         )
     else:
         prediction_survival(
@@ -65,14 +65,14 @@ def argument_parser(argvs, training_mode):
             args.target,
             args.algorithm,
             args.random_state,
-            args.n_inner_search
+            args.n_inner_search,
         )
 
 
 def basic_prediction_cli(argvs=sys.argv[1:]):
     argument_parser(argvs, "basic_training")
 
-    
+
 def prediction_cli(argvs=sys.argv[1:]):
     argument_parser(argvs, "full_training")
 
@@ -113,7 +113,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         scaled_test_set, _, _ = scale_age(test_set)
 
         model.fit(scaled_train_set)
-        
+
         train_prediction = model.predict(scaled_train_set) * age_std + age_mean
         test_prediction = model.predict(scaled_test_set) * age_std + age_mean
 
@@ -130,9 +130,7 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
             )
         )
         list_test_r2.append(
-            r2_score(
-                test_set.loc[test_prediction.index, AGE_COLUMN], test_prediction
-            )
+            r2_score(test_set.loc[test_prediction.index, AGE_COLUMN], test_prediction)
         )
         list_test_rmse.append(
             mean_squared_error(
@@ -143,7 +141,9 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         )
         list_test_prediction.append(test_prediction)
 
-        index_feature_importances = f"feature_importances_age_{algorithm}_{random_state}_{int(fold)}"
+        index_feature_importances = (
+            f"feature_importances_age_{algorithm}_{random_state}_{int(fold)}"
+        )
         feature_importances = model.get_feature_importances(scaled_train_set.columns)
         feature_importances_to_dump[index_feature_importances] = feature_importances
 
@@ -155,7 +155,10 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
         pd.Series(list_train_rmse).mean(),
         pd.Series(list_train_rmse).std(),
     )
-    test_r2_std, test_rmse_std = pd.Series(list_test_r2).std(), pd.Series(list_test_rmse).std()
+    test_r2_std, test_rmse_std = (
+        pd.Series(list_test_r2).std(),
+        pd.Series(list_test_rmse).std(),
+    )
 
     every_test_prediction = pd.concat(list_test_prediction)
     test_r2 = r2_score(
@@ -180,16 +183,34 @@ def prediction_age(main_category, category, algorithm, random_state, n_inner_sea
 
     update_results_age = UpdateResultsAge()
 
-    if update_results_age.check_better_training(main_category, category, algorithm, metrics, random_state):
-        predictions_to_dump[f"prediction_age_{algorithm}_{random_state}"] = every_test_prediction
-        
-        predictions_to_dump.reset_index().to_feather(f"dumps/prediction/age/{main_category}/{category}/{algorithm}_{random_state}.feather")
-        feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}.feather")
+    if update_results_age.check_better_training(
+        main_category, category, algorithm, metrics, random_state
+    ):
+        predictions_to_dump[
+            f"prediction_age_{algorithm}_{random_state}"
+        ] = every_test_prediction
 
-        update_results_age.update_results(main_category, algorithm, metrics, random_state, n_inner_search)
+        predictions_to_dump.reset_index().to_feather(
+            f"dumps/prediction/age/{main_category}/{category}/{algorithm}_{random_state}.feather"
+        )
+        feature_importances_to_dump.reset_index().to_feather(
+            f"dumps/feature_importances/age/{main_category}/{category}/{algorithm}_{random_state}.feather"
+        )
+
+        update_results_age.update_results(
+            main_category, algorithm, metrics, random_state, n_inner_search
+        )
 
 
-def prediction_survival(main_category, category, training_mode, target, algorithm, random_state, n_inner_search):
+def prediction_survival(
+    main_category,
+    category,
+    training_mode,
+    target,
+    algorithm,
+    random_state,
+    n_inner_search,
+):
     from sksurv.metrics import concordance_index_censored
 
     from prediction.model import ModelSurvival
@@ -198,13 +219,11 @@ def prediction_survival(main_category, category, training_mode, target, algorith
     from prediction.update_results import UpdateResultsSurvival
     from prediction import DEATH_COLUMN, FOLLOW_UP_TIME_COLUMN, BASIC_TRAINING_COLUMNS
 
-
     def any_fold_all_cencored(data):
         for idx_fold in data["fold"].drop_duplicates():
             if (data.loc[data["fold"] == idx_fold, DEATH_COLUMN] == 1.0).sum() == 0:
                 return True
         return False
-
 
     data = pd.read_feather(f"data/{main_category}/{category}.feather").set_index("SEQN")
 
@@ -247,17 +266,29 @@ def prediction_survival(main_category, category, training_mode, target, algorith
             test_prediction = model.predict(scaled_test_set)
 
             list_train_c_index.append(
-                concordance_index_censored(train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool), train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN], train_prediction)[0]
+                concordance_index_censored(
+                    train_set.loc[train_prediction.index, DEATH_COLUMN].astype(bool),
+                    train_set.loc[train_prediction.index, FOLLOW_UP_TIME_COLUMN],
+                    train_prediction,
+                )[0]
             )
             list_test_c_index.append(
-                concordance_index_censored(test_set.loc[test_prediction.index, DEATH_COLUMN].astype(bool), test_set.loc[test_prediction.index, FOLLOW_UP_TIME_COLUMN], test_prediction)[0]
+                concordance_index_censored(
+                    test_set.loc[test_prediction.index, DEATH_COLUMN].astype(bool),
+                    test_set.loc[test_prediction.index, FOLLOW_UP_TIME_COLUMN],
+                    test_prediction,
+                )[0]
             )
             list_test_prediction.append(test_prediction)
 
-            if training_mode == "full_training": 
+            if training_mode == "full_training":
                 index_feature_importances = f"feature_importances_{target}_{algorithm}_{random_state}_{int(fold)}"
-                feature_importances = model.get_feature_importances(scaled_train_set.columns)
-                feature_importances_to_dump[index_feature_importances] = feature_importances
+                feature_importances = model.get_feature_importances(
+                    scaled_train_set.columns
+                )
+                feature_importances_to_dump[
+                    index_feature_importances
+                ] = feature_importances
 
         train_c_index, train_c_index_std = (
             pd.Series(list_train_c_index).mean(),
@@ -266,7 +297,11 @@ def prediction_survival(main_category, category, training_mode, target, algorith
         test_c_index_std = pd.Series(list_test_c_index).std()
 
         every_test_prediction = pd.concat(list_test_prediction)
-        test_c_index = concordance_index_censored(data.loc[every_test_prediction.index, DEATH_COLUMN].astype(bool), data.loc[every_test_prediction.index, FOLLOW_UP_TIME_COLUMN], every_test_prediction)[0]
+        test_c_index = concordance_index_censored(
+            data.loc[every_test_prediction.index, DEATH_COLUMN].astype(bool),
+            data.loc[every_test_prediction.index, FOLLOW_UP_TIME_COLUMN],
+            every_test_prediction,
+        )[0]
 
         metrics = {
             "train C-index": train_c_index,
@@ -281,14 +316,30 @@ def prediction_survival(main_category, category, training_mode, target, algorith
             "test C-index": -1,
             "test C-index std": -1,
         }
-    
+
     update_results_survival = UpdateResultsSurvival()
 
-    if update_results_survival.check_better_training(main_category, category, algorithm, target, metrics, training_mode, random_state):
+    if update_results_survival.check_better_training(
+        main_category, category, algorithm, target, metrics, training_mode, random_state
+    ):
         if training_mode == "full_training" and metrics["test C-index"] != -1:
-            predictions_to_dump[f"prediction_{target}_{algorithm}_{random_state}"] = every_test_prediction
-            
-            predictions_to_dump.reset_index().to_feather(f"dumps/prediction/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
-            feature_importances_to_dump.reset_index().to_feather(f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather")
+            predictions_to_dump[
+                f"prediction_{target}_{algorithm}_{random_state}"
+            ] = every_test_prediction
 
-        update_results_survival.update_results(main_category, algorithm, target, metrics, training_mode, random_state, n_inner_search)
+            predictions_to_dump.reset_index().to_feather(
+                f"dumps/prediction/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather"
+            )
+            feature_importances_to_dump.reset_index().to_feather(
+                f"dumps/feature_importances/{target}/{main_category}/{category}/{algorithm}_{random_state}.feather"
+            )
+
+        update_results_survival.update_results(
+            main_category,
+            algorithm,
+            target,
+            metrics,
+            training_mode,
+            random_state,
+            n_inner_search,
+        )
