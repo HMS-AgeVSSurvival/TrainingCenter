@@ -69,33 +69,52 @@ function add_memory() {
 function add_time() {
     echo "Add time"
 
-    IFS=":" read -ra SPLIT_TIME_LIMIT <<< $new_time_limit
-    local HOURS=$(( 10#${SPLIT_TIME_LIMIT[0]} ))
-    local MINUTES=$(( 10#${SPLIT_TIME_LIMIT[1]} ))
-    local SECONDS=$(( 10#${SPLIT_TIME_LIMIT[2]} ))
-
-    if (( $HOURS < 3 ));  # Add 30 minutes
+    if [[ $new_time_limit =~ "-" ]]; 
     then
-        if (( $MINUTES + 30 < 60 ));
-        then
-            new_time_limit=$HOURS:$(( $MINUTES + 30 )):$SECONDS
-        else
-            new_time_limit=$(( $HOURS + 1 )):$(( ($MINUTES + 30) % 60 )):$SECONDS
-        fi
-    else  # Add 2 hours
-        new_time_limit=$(( $HOURS + 2 )):$(( $MINUTES )):$SECONDS
+        IFS="-" read -ra SPLIT_TIME_LIMIT <<< $new_time_limit
+        local NEW_DAYS=$(( 10#${SPLIT_TIME_LIMIT[0]} ))
+        local HOURS_MINUTES_SECONDS=${SPLIT_TIME_LIMIT[1]}
+    else
+        local NEW_DAYS=$(( 10#0 ))
+        local HOURS_MINUTES_SECONDS=$new_time_limit
     fi
-    
-    IFS=":" read -ra SPLIT_NEW_TIME_LIMIT <<< $new_time_limit
-    local NEW_HOURS=$(( 10#${SPLIT_NEW_TIME_LIMIT[0]} ))
 
-    if (( $NEW_HOURS < 12 ));
+    IFS=":" read -ra SPLIT_HOURS_MINUTES_SECONDS_LIMIT <<< $HOURS_MINUTES_SECONDS
+    local NEW_HOURS=$(( 10#${SPLIT_HOURS_MINUTES_SECONDS_LIMIT[0]} ))
+    local NEW_MINUTES=$(( 10#${SPLIT_HOURS_MINUTES_SECONDS_LIMIT[1]} ))
+    local NEW_SECONDS=$(( 10#${SPLIT_HOURS_MINUTES_SECONDS_LIMIT[2]} ))
+
+    if (( $NEW_HOURS < 3 )) && (( $NEW_DAYS == 0 ));  # Add 30 minutes
+    then
+        if (( $NEW_MINUTES + 30 < 60 ));
+        then
+            NEW_MINUTES=$(( $NEW_MINUTES + 30 ))
+        else
+            NEW_HOURS=$(( $NEW_HOURS + 1 ))
+            NEW_MINUTES=$(( ($NEW_MINUTES + 30) % 60 ))
+        fi
+    elif (( $NEW_HOURS == 0 ));  # Add 12 hours
+    then
+        NEW_HOURS=12
+    else # Double the amount of hours
+        NEW_HOURS=$(( 2 * $NEW_HOURS ))
+    fi
+
+    if (( $NEW_HOURS < 12 )) && (( $NEW_DAYS == 0 ));
     then
         new_partition="short"
-        new_n_inner_search=$new_n_inner_search
+        new_time_limit=$NEW_HOURS:$NEW_MINUTES:$NEW_SECONDS
     else
         new_partition="medium"
-        new_n_inner_search=1
+        new_n_inner_search=$(( $new_n_inner_search / 2 > 0 ? $new_n_inner_search / 2 : 1 ))
+
+        if (( $NEW_HOURS < 24 ));
+        then
+            new_time_limit=$NEW_DAYS-$NEW_HOURS:$NEW_MINUTES:$NEW_SECONDS
+        else
+            new_time_limit=$(( $NEW_DAYS + 1 ))-$(( $NEW_HOURS % 24 )):$NEW_MINUTES:$NEW_SECONDS
+        fi
+
     fi
 }
 
